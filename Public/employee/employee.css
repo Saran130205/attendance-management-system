@@ -1,0 +1,166 @@
+/* ===== Global ===== */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to right, #4facfe, #00f2fe);
+
+  min-height: 100vh;
+  padding: 30px;
+}
+
+/* ===== Main Heading ===== */
+h1 {
+  text-align: center;
+  color: white;
+  margin-bottom: 30px;
+}
+
+/* ===== Logout Button ===== */
+button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.3s ease;
+}
+
+/* Logout specific */
+button[onclick="logout()"] {
+  background: #ff6b6b;
+  color: white;
+  position: absolute;
+  top: 30px;
+  right: 30px;
+}
+
+button[onclick="logout()"]:hover {
+  background: #e55050;
+}
+
+/* ===== Section Title ===== */
+h2 {
+  color: white;
+  margin-bottom: 15px;
+}
+
+/* ===== Attendance Card ===== */
+#attendanceTable {
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  border-collapse: collapse;
+}
+
+/* ===== Table Header ===== */
+#attendanceTable thead {
+  background: #2c5364;
+  color: white;
+}
+
+#attendanceTable th,
+#attendanceTable td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+/* ===== Hover Effect ===== */
+#attendanceTable tbody tr:hover {
+  background: #f1f3f6;
+}
+
+.profile-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.profile-card input,
+.profile-card select {
+  padding: 10px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.profile-header {
+  text-align: right;
+  margin-bottom: 10px;
+}
+
+#editProfileBtn {
+  background: #3498db;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+#editProfileBtn:hover {
+  background: #2980b9;
+}
+
+#saveProfileBtn {
+  background: #2ecc71;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+#saveProfileBtn:hover {
+  background: #27ae60;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.action-buttons button {
+  margin-left: 10px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+#checkInBtn {
+  background: #2ecc71;
+  color: white;
+}
+
+#checkInBtn:hover {
+  background: #27ae60;
+}
+
+#checkOutBtn {
+  background: #e74c3c;
+  color: white;
+}
+
+#checkOutBtn:hover {
+  background: #c0392b;
+}
+/* ===== Responsive Fix ===== */
+/* @media (max-width: 768px) {
+  body {
+    padding: 15px;
+  }
+
+  #attendanceTable th,
+  #attendanceTable td {
+    padding: 8px;
+    font-size: 12px;
+  }
+} */

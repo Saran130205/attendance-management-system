@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/admin/admin.css">
+
+</head>
+<body>
+<link rel="stylesheet" href="admin.css">
+<h1>Admin Dashboard</h1>
+<h3 id="welcomeText" style="color:white;"></h3>
+<button onclick="logout()" class="logout-btn " >Logout</button>
+<button id="calendarBtn"  class="calendar-btn" >View Calendar</button>
+<div id="calendar2026" style="display: none;"></div>
+
+<h2>Create User</h2>
+
+<form id="createForm">
+  <input type="text" id="name" placeholder="Name" required>
+  <input type="text" id="password" placeholder="Password" required>
+
+  <select id="role" required>
+    <option value="">Select Role</option>
+    <option value="admin">Admin</option>
+    <option value="employee">Employee</option>
+  </select>
+
+  <input type="text" id="department" placeholder="Department" required>
+  <button type="submit">Create</button>
+</form>
+<div class="search">
+<input type="text" id="searchInput" placeholder="Search by Name...">
+</div>
+<h2>All Users</h2>
+
+<table border="1" id="userTable">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Role</th>
+      <th>Department</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<h2>Attendance Details</h2>
+
+<table border="1" id="attendanceTable">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Role</th>
+      <th>Date</th>
+      <th>Check In</th>
+      <th>Check Out</th>
+      <th>Total Duration</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<!-- <h2>Present Users (Live)</h2>
+
+<table border="1" id="presentTable">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Role</th>
+      <th>Check In</th>
+      <th>Live Duration</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table> -->
+
+<script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Employee Attendance System - Login</title>
+  <link rel="stylesheet" href="common.css">
+</head>
+<body>
+
+<div class="login-container">
+  <div class="login-card">
+    <h2>Employee Attendance System</h2>
+    <p class="subtitle">Secure Login Portal</p>
+
+    <form id="loginForm">
+
+      <div class="input-group">
+        <input type="text" id="name" placeholder="Username" required>
+      </div>
+
+      <div class="input-group">
+        <input type="password" id="password" placeholder="Password" required>
+      </div>
+
+      <div class="input-group">
+        <select id="role" required>
+          <option value="">Select Role</option>
+          <option value="admin">Admin</option>
+          <option value="manager">Manager</option>
+          <option value="employee">Employee</option>
+        </select>
+      </div>
+
+      <button type="submit" class="login-btn">Login</button>
+
+      <p id="error-msg" class="error-msg"></p>
+
+    </form>
+
+    <p class="footer-text">© 2026 Attendance System</p>
+  </div>
+</div>
+
+<script>
+document.getElementById("loginForm")
+.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("name").value;
+  const password = document.getElementById("password").value;
+  const selectedRole = document.getElementById("role").value;
+  const errorMsg = document.getElementById("error-msg");
+
+  const res = await fetch("/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, password })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    errorMsg.innerText = data.message;
+    return;
+  }
+
+  // 🔥 Role validation
+  if (data.role !== selectedRole) {
+    errorMsg.innerText = "Selected role does not match your account role.";
+    return;
+  }
+
+  // ✅ Redirect
+  if (data.role === "admin") {
+    window.location.href = "/admin/admin.html";
+  } 
+  else if (data.role === "manager") {
+    window.location.href = "/manager/manager.html";
+  } 
+  else if (data.role === "employee") {
+    window.location.href = "/employee/employee.html";
+  }
+});
+</script>
+
+</body>
+</html>

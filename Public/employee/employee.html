@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Employee Dashboard</title>
+  <link rel="stylesheet" href="employee.css">
+
+</head>
+<body>
+
+<h1>Employee Dashboard</h1>
+<h3 id="welcomeText" style="color:white;"></h3>
+<button onclick="logout()">Logout</button>
+
+
+<h2>My Profile</h2>
+
+<div class="profile-card">
+
+  <div class="profile-header">
+    <button id="editBtn">Edit Profile</button>
+  </div>
+  <div class="action-buttons">
+  <button id="checkInBtn">Check In</button>
+  <button id="checkOutBtn">Check Out</button>
+</div>
+
+  <form id="profileForm">
+
+    <input type="text" id="name" disabled>
+    <input type="text" id="department" disabled>
+
+    <select id="gender" disabled>
+      <option value="">Select Gender</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+    </select>
+
+    <input type="date" id="dob" disabled>
+    <input type="number" id="age" placeholder="Age" disabled>
+    <input type="text" id="contact" placeholder="Contact" disabled>
+    <input type="password" id="password" placeholder="New Password" disabled>
+
+    <button type="submit" id="saveBtn" style="display:none;">
+      Save Changes
+    </button>
+
+  </form>
+</div>
+
+<h2>My Attendance</h2>
+
+<table border="1" id="attendanceTable">
+  <thead>
+  <tr>
+    <th>Date</th>
+    <th>Status</th>
+    <th>Check In</th>
+    <th>Check Out</th>
+    <th>Worked Hours</th> 
+  </tr>
+</thead>
+  <tbody></tbody>
+</table>
+
+<script src="employee.js"></script>
+</body>
+</html>
