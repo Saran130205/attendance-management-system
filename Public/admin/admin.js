@@ -1,4 +1,5 @@
 console.log("ADMIN JS LOADED");
+let allAttendance = [];
 
 document.addEventListener("DOMContentLoaded", function () {
   let allUsers = [];
@@ -31,33 +32,13 @@ document.addEventListener("DOMContentLoaded", function () {
     allUsers = await res.json();
     renderUsers(allUsers);
     return; 
+  function renderUsers(users) {
 
-    // const tbody = document.querySelector("#userTable tbody");
-    // tbody.innerHTML = "";
-
-    // users.forEach(user => {
-    //   const row = document.createElement("tr");
-
-    //   row.innerHTML = `
-    //     <td>${user.id}</td>
-    //     <td>${user.name}</td>
-    //     <td>${user.role}</td>
-    //     <td>${user.department}</td>
-    //     <td>
-    //       <button class="edit-btn" data-id="${user.id}">Edit</button>
-    //       <button class="delete-btn" data-id="${user.id}">Delete</button>
-    //       <button id="status-btn-${user.id}" onclick="viewStatus(${user.id})">View Status</button>
-    //     </td>
-    //   `;
-
-    //   tbody.appendChild(row);
-    // });
-
-    function renderUsers(users) {
   const tbody = document.querySelector("#userTable tbody");
   tbody.innerHTML = "";
 
   users.forEach(user => {
+
     const row = document.createElement("tr");
 
     row.innerHTML = `
@@ -65,41 +46,41 @@ document.addEventListener("DOMContentLoaded", function () {
       <td>${user.name}</td>
       <td>${user.role}</td>
       <td>${user.department}</td>
+      <td id="attendance-${user.id}"></td>
       <td>
         <button class="edit-btn" data-id="${user.id}">Edit</button>
         <button class="delete-btn" data-id="${user.id}">Delete</button>
-        <button id="status-btn-${user.id}" onclick="viewStatus(${user.id})">
-          View Status
-        </button>
+        <button id="status-btn-${user.id}" onclick="viewStatus(${user.id})">View Status</button>
+        <button onclick="openUserCalendar(${user.id}, '${user.name}')">View Calendar</button>
+        <button onclick="viewMonthlyHours(${user.id}, '${user.name}')">Work Hours</button>
       </td>
     `;
 
     tbody.appendChild(row);
+
+    // 🔥 Fetch actual attendance summary
+    fetch(`/api/admin/user-attendance-summary/${user.id}`)
+      .then(res => res.json())
+      .then(data => {
+
+        const cell = document.getElementById(`attendance-${user.id}`);
+
+        cell.innerText = `${data.presentDays} / ${data.workingDays}`;
+
+        // if (data.presentDays < data.workingDays * 0.5) {
+        //   cell.style.color = "red";
+        // } else {
+        //   cell.style.color = "green";
+        // }
+
+      })
+      .catch(() => {
+        const cell = document.getElementById(`attendance-${user.id}`);
+        cell.innerText = "-";
+      });
+
   });
-}
   }
-  window.viewStatus = function (userId) {
-  fetch(`/api/admin/status/${userId}`)
-    .then(res => res.json())
-    .then(data => {
-      const btn = document.getElementById(`status-btn-${userId}`);
-
-      if (data.status === "Present") {
-        btn.innerText = "Present";
-        btn.style.backgroundColor = "green";
-        btn.style.color = "white";
-      } else {
-        btn.innerText = "Absent";
-        btn.style.backgroundColor = "red";
-        btn.style.color = "white";
-      }
-
-      // Optional: Disable button after click
-      btn.disabled = true;
-    })
-    .catch(err => {
-      console.error(err);
-    });
 }
 // ================= SEARCH =================
 
@@ -164,21 +145,26 @@ document.getElementById("searchInput")
   });
 
   // ================= ATTENDANCE =================
+ let allAttendance = [];
 
-  async function loadAttendance() {
+// 🔥 LOAD ATTENDANCE
+async function loadAttendance() {
   const res = await fetch("/api/admin/attendance");
-  const data = await res.json();
+  allAttendance = await res.json();
+  renderAttendance(allAttendance);
+}
+
+
+// 🔥 RENDER FUNCTION
+function renderAttendance(records) {
 
   const tbody = document.querySelector("#attendanceTable tbody");
   tbody.innerHTML = "";
 
-  data.forEach(record => {
+  records.forEach(record => {
 
     const dateOnly = record.date.split("T")[0];
 
-    const row = document.createElement("tr");
-
-    // ✅ Calculate Total Duration
     let totalDuration = "-";
 
     if (record.check_in && record.check_out) {
@@ -195,6 +181,8 @@ document.getElementById("searchInput")
       totalDuration = `${hours}h ${minutes}m ${seconds}s`;
     }
 
+    const row = document.createElement("tr");
+
     row.innerHTML = `
       <td>${record.name}</td>
       <td>${record.role}</td>
@@ -206,6 +194,32 @@ document.getElementById("searchInput")
 
     tbody.appendChild(row);
   });
+}
+
+
+// 🔥 SEARCH + MONTH FILTER
+document.getElementById("attendanceSearch")
+  .addEventListener("input", filterAttendance);
+
+document.getElementById("monthFilter")
+  .addEventListener("change", filterAttendance);
+
+function filterAttendance() {
+
+  const nameValue = document.getElementById("attendanceSearch").value.toLowerCase();
+  const monthValue = document.getElementById("monthFilter").value;
+
+  const filtered = allAttendance.filter(record => {
+
+    const recordMonth = record.date.split("-")[1];
+
+    const matchName = record.name.toLowerCase().includes(nameValue);
+    const matchMonth = monthValue === "" || recordMonth === monthValue;
+
+    return matchName && matchMonth;
+  });
+
+  renderAttendance(filtered);
 }
 
   // ================= CREATE / UPDATE USER =================
@@ -437,3 +451,126 @@ if (calendarBtn && overlay && closeCalendar && calendar) {
   };
 
 });
+// ================= VIEW STATUS =================
+
+window.viewStatus = function (userId) {
+
+  fetch(`/api/admin/status/${userId}`)
+    .then(res => res.json())
+    .then(data => {
+
+      const btn = document.getElementById(`status-btn-${userId}`);
+
+      if (!btn) return;
+
+      if (data.status === "Present") {
+        btn.innerText = "Present";
+        btn.style.backgroundColor = "green";
+        btn.style.color = "white";
+      } else {
+        btn.innerText = "Absent";
+        btn.style.backgroundColor = "red";
+        btn.style.color = "white";
+      }
+      setTimeout(()=>{
+        btn.innerText = "View Status";
+        btn.style.backgroundColor = "";
+        btn.style.color = "";
+      }, 2000);
+
+    })
+    .catch(err => console.error("Status Error:", err));
+
+};
+
+window.openUserCalendar = async function(userId, userName) {
+
+  const overlay = document.getElementById("userCalendarOverlay");
+  const calendarDiv = document.getElementById("userCalendar");
+  const nameTitle = document.getElementById("calendarUserName");
+
+  nameTitle.innerText = `${userName} - Monthly Calendar`;
+  calendarDiv.innerHTML = "";
+
+  const res = await fetch(`/api/admin/user-calendar/${userId}`);
+  const data = await res.json();
+
+  const presentDates = data.attendance.map(a =>
+    new Date(a.date).toISOString().split("T")[0]
+  );
+
+  const leaveDates = [];
+  data.leaves.forEach(l => {
+    const start = new Date(l.from_date);
+    const end = new Date(l.to_date);
+
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      leaveDates.push(d.toISOString().split("T")[0]);
+    }
+  });
+
+  const year = new Date().getFullYear();
+  const month = new Date().getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  for (let day = 1; day <= daysInMonth; day++) {
+
+  const dateObj = new Date(year, month, day);
+  const dateStr = dateObj.toISOString().split("T")[0];
+
+  const box = document.createElement("div");
+  box.classList.add("day-box");
+  box.innerText = day;
+
+  const dayOfWeek = dateObj.getDay();
+
+  if (presentDates.includes(dateStr)) {
+    box.classList.add("present");
+
+  } else if (leaveDates.includes(dateStr)) {
+    box.classList.add("leave");
+
+  } else if (dayOfWeek === 0) {
+    box.classList.add("sunday");
+
+  } else if (dayOfWeek === 6) {
+    box.classList.add("saturday");
+
+  } else {
+    box.classList.add("absent");
+  }
+
+  calendarDiv.appendChild(box);
+}
+
+  overlay.classList.remove("hidden");
+};
+
+window.closeUserCalendar = function() {
+  document.getElementById("userCalendarOverlay")
+    .classList.add("hidden");
+};
+
+window.viewMonthlyHours = async function(userId, userName) {
+
+  const overlay = document.getElementById("hoursOverlay");
+  const content = document.getElementById("hoursContent");
+  const title = document.getElementById("hoursUserName");
+
+  title.innerText = `${userName} - Monthly Work Summary`;
+
+  const res = await fetch(`/api/admin/user-monthly-hours/${userId}`);
+  const data = await res.json();
+
+  content.innerHTML = `
+    <p><strong>Standard Monthly Hours:</strong> ${data.standardHours} hrs</p>
+    <p><strong>Employee Worked Hours:</strong> ${data.workedHours} hrs</p>
+    <p><strong>Difference:</strong> ${data.difference} hrs</p>
+  `;
+
+  overlay.classList.remove("hidden");
+};
+
+window.closeHours = function() {
+  document.getElementById("hoursOverlay").classList.add("hidden");
+};

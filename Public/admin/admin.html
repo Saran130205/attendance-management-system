@@ -70,7 +70,9 @@
           <th>Name</th>
           <th>Role</th>
           <th>Department</th>
+          <th>Attendance</th>
           <th>Action</th>
+          
         </tr>
       </thead>
       <tbody></tbody>
@@ -80,9 +82,23 @@
   <!-- ===== ATTENDANCE ===== -->
   <div class="card">
     <h2>Attendance Details</h2>
-    <div class="search">
-      <input type="text" id="searchInput" placeholder="Search by Name...">
-    </div>
+    <input type="text" id="attendanceSearch" placeholder="Search by Name..." />
+
+<select id="monthFilter">
+  <option value="">All Months</option>
+  <option value="01">January</option>
+  <option value="02">February</option>
+  <option value="03">March</option>
+  <option value="04">April</option>
+  <option value="05">May</option>
+  <option value="06">June</option>
+  <option value="07">July</option>
+  <option value="08">August</option>
+  <option value="09">September</option>
+  <option value="10">October</option>
+  <option value="11">November</option>
+  <option value="12">December</option>
+</select>
     <table id="attendanceTable">
       <thead>
         <tr>
@@ -112,7 +128,34 @@
 
   </div>
 </div>
-  
+
+<!-- Employee Calendar Modal -->
+<div id="userCalendarOverlay" class="calendar-overlay hidden">
+  <div class="calendar-modal">
+
+    <div class="calendar-header">
+      <h3 id="calendarUserName">Employee Calendar</h3>
+      <button onclick="closeUserCalendar()">X</button>
+    </div>
+
+    <div id="userCalendar" class="calendar-grid"></div>
+
+  </div>
+</div>
+<!-- hours calculation -->
+<div id="hoursOverlay" class="calendar-overlay hidden">
+  <div class="calendar-modal">
+
+    <div class="calendar-header">
+      <h3 id="hoursUserName">Monthly Work Summary</h3>
+      <button onclick="closeHours()">X</button>
+    </div>
+
+    <div id="hoursContent"></div>
+
+  </div>
+</div>
+
 </body>
 <script src="admin.js" defer></script>
 </html>

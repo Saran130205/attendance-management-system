@@ -16,8 +16,6 @@ app.use(
   })
 );
 
-// console.log("🔥 SERVER FILE RUNNING 🔥");
-
 // ================= LOGIN =================
 app.post("/api/login", (req, res) => {
   const { name, password } = req.body;
@@ -253,6 +251,154 @@ app.get("/api/admin/status/:id", (req, res) => {
       return res.json({ status: "Absent" });
     }
   });
+});
+
+//user attendance summary
+
+app.get("/api/admin/user-attendance-summary/:id", (req, res)=>{
+  if (!req.session.user || req.session.user.role !== "admin") {
+    return res.status(403).json({ message: "Admin only" });
+  }
+  const userId = req.params.id;
+  const month = new Date().getMonth() + 1; // current month
+  const year = new Date().getFullYear();
+
+  const presentQuery = `
+    SELECT COUNT(DISTINCT date) AS presentDays
+    FROM attendance
+    WHERE user_id = ?
+    AND MONTH(date) = ?
+    AND YEAR(date) = ?
+  `;
+
+  db.query(presentQuery, [userId, month, year], (err, result) => {
+    if (err) return res.status(500).json(err);
+
+    const presentDays = result[0].presentDays;
+
+    // Calculate Working Days (Mon–Fri)
+    const totalDays = new Date(year, month, 0).getDate();
+
+    let workingDays = 0;
+
+    for (let day = 1; day <= totalDays; day++) {
+      const date = new Date(year, month - 1, day);
+      const dayOfWeek = date.getDay();
+
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        workingDays++;
+      }
+    }
+
+    res.json({
+      presentDays,
+      workingDays
+    });
+  });
+});
+
+//User-calendar
+
+app.get("/api/admin/user-calendar/:id", (req, res) => {
+
+  const userId = req.params.id;
+
+  const month = new Date().getMonth() + 1;
+  const year = new Date().getFullYear();
+
+  const attendanceSql = `
+    SELECT date FROM attendance
+    WHERE user_id = ?
+    AND MONTH(date) = ?
+    AND YEAR(date) = ?
+  `;
+
+  const leaveSql = `
+    SELECT from_date, to_date FROM leave_requests
+    WHERE employee_id = ?   -- ✅ FIXED HERE
+    AND status = 'Approved'
+    AND (
+      MONTH(from_date) = ?
+      OR MONTH(to_date) = ?
+    )
+  `;
+
+  db.query(attendanceSql, [userId, month, year], (err, attendance) => {
+
+    if (err) {
+      console.log("Attendance SQL Error:", err);
+      return res.status(500).json({ attendance: [], leaves: [] });
+    }
+
+    db.query(leaveSql, [userId, month, month], (err2, leaves) => {
+
+      if (err2) {
+        console.log("Leave SQL Error:", err2);
+        return res.status(500).json({ attendance: [], leaves: [] });
+      }
+
+      res.json({
+        attendance: attendance || [],
+        leaves: leaves || []
+      });
+
+    });
+
+  });
+
+});
+
+//User-monthly-hours
+app.get("/api/admin/user-monthly-hours/:id", (req, res) => {
+
+  const userId = req.params.id;
+
+  const month = new Date().getMonth() + 1;
+  const year = new Date().getFullYear();
+
+  const sql = `
+    SELECT check_in, check_out, date
+    FROM attendance
+    WHERE user_id = ?
+    AND MONTH(date) = ?
+    AND YEAR(date) = ?
+    AND check_in IS NOT NULL
+    AND check_out IS NOT NULL
+  `;
+
+  db.query(sql, [userId, month, year], (err, records) => {
+
+    if (err) return res.status(500).json({ error: err });
+
+    let totalSeconds = 0;
+
+    records.forEach(r => {
+      const checkIn = new Date(`1970-01-01T${r.check_in}`);
+      const checkOut = new Date(`1970-01-01T${r.check_out}`);
+      totalSeconds += (checkOut - checkIn) / 1000;
+    });
+
+    const workedHours = totalSeconds / 3600;
+
+    // Calculate working days (Mon-Fri)
+    const totalDays = new Date(year, month, 0).getDate();
+    let workingDays = 0;
+
+    for (let d = 1; d <= totalDays; d++) {
+      const day = new Date(year, month - 1, d).getDay();
+      if (day !== 0 && day !== 6) workingDays++;
+    }
+
+    const standardHours = workingDays * 8.5;
+
+    res.json({
+      workedHours: workedHours.toFixed(2),
+      standardHours: standardHours.toFixed(2),
+      difference: (workedHours - standardHours).toFixed(2)
+    });
+
+  });
+
 });
 // ================= EMPLOYEE ROUTES =================
 

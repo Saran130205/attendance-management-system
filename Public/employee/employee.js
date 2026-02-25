@@ -6,7 +6,7 @@ async function checkAuth() {
   }
 
   const user = await res.json();
-    document.getElementById("welcomeText").innerText = `Hello ${user.name}`;
+    document.getElementById("welcomeText").innerText = `Hello ${user.name}..,`;
   if (user.role !== "employee") {
     window.location.href = "/common/common.html";
     return;
