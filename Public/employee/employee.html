@@ -10,6 +10,26 @@
 <h1>Employee Dashboard</h1>
 <h3 id="welcomeText" style="color:white;"></h3>
 <button onclick="logout()">Logout</button>
+<div class="container">
+    <button id="leaveBtn" class="primary-btn">Request Leave</button>
+
+    <div id="leaveForm" class="leave-form hidden">
+      <h3>Apply Leave</h3>
+
+      <label>From Date</label>
+      <input type="date" id="fromDate">
+
+      <label>To Date</label>
+      <input type="date" id="toDate">
+
+      <label>Reason</label>
+      <textarea id="reason" placeholder="Enter reason..."></textarea>
+
+      <button id="submitLeave" class="success-btn">Submit</button>
+      <button id="cancelLeave" class="danger-btn">Cancel</button>
+    </div>
+  </div>
+
 
 
 <h2>My Profile</h2>
@@ -23,6 +43,7 @@
   <button id="checkInBtn">Check In</button>
   <button id="checkOutBtn">Check Out</button>
 </div>
+    
 
   <form id="profileForm">
 

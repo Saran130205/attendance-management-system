@@ -399,6 +399,48 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
+// lrave approvall
+  document.addEventListener("DOMContentLoaded", function () {
+
+  const viewLeaveBtn = document.getElementById("viewLeaveBtn");
+  const leaveSection = document.getElementById("leaveSection");
+
+  viewLeaveBtn.addEventListener("click", function () {
+
+    leaveSection.classList.remove("hidden");
+
+    fetch("/api/admin/leave-requests")
+      .then(res => res.json())
+      .then(data => {
+
+        const tbody = document.querySelector("#leaveTable tbody");
+        tbody.innerHTML = "";
+
+        if (data.length === 0) {
+          tbody.innerHTML = "<tr><td colspan='5'>No leave requests</td></tr>";
+          return;
+        }
+
+        data.forEach(leave => {
+          tbody.innerHTML += `
+            <tr>
+              <td>${leave.employee_name}</td>
+              <td>${leave.from_date}</td>
+              <td>${leave.to_date}</td>
+              <td>${leave.reason}</td>
+              <td>${leave.status}</td>
+            </tr>
+          `;
+        });
+
+      })
+      .catch(err => {
+        alert("Error loading leave requests");
+      });
+
+  });
+
+});
 
   window.logout = async function () {
     await fetch("/api/logout", { method: "POST" });

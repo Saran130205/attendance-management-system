@@ -157,6 +157,57 @@ document.getElementById("profileForm")
   loadProfile();
 });
 
+//req leave
+document.addEventListener("DOMContentLoaded", function () {
+
+  const leaveBtn = document.getElementById("leaveBtn");
+  const leaveForm = document.getElementById("leaveForm");
+  const cancelLeave = document.getElementById("cancelLeave");
+  const submitLeave = document.getElementById("submitLeave");
+
+  leaveBtn.addEventListener("click", function () {
+    leaveForm.classList.remove("hidden");
+  });
+
+  cancelLeave.addEventListener("click", function () {
+    leaveForm.classList.add("hidden");
+  });
+
+  submitLeave.addEventListener("click", function () {
+
+    const fromDate = document.getElementById("fromDate").value;
+    const toDate = document.getElementById("toDate").value;
+    const reason = document.getElementById("reason").value;
+
+    if (!fromDate || !toDate || !reason) {
+      alert("All fields are required");
+      return;
+    }
+
+    fetch("/api/employee/request-leave", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from_date: fromDate,
+        to_date: toDate,
+        reason: reason
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.message);
+      leaveForm.classList.add("hidden");
+      location.reload();
+    })
+    .catch(err => {
+      alert("Error submitting leave");
+    });
+
+  });
+
+});
+
+
 async function logout() {
   await fetch("/api/logout", { method: "POST" });
   window.location.href = "/common/common.html";

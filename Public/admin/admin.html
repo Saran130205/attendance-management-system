@@ -10,6 +10,23 @@
 <h1>Admin Dashboard</h1>
 <h3 id="welcomeText" style="color:white;"></h3>
 <button onclick="logout()" class="logout-btn " >Logout</button>
+<button id="viewLeaveBtn" class="primary-btn">View Leave Requests</button>
+
+<div id="leaveSection" class="hidden">
+  <h3>Leave Requests</h3>
+  <table id="leaveTable">
+    <thead>
+      <tr>
+        <th>Employee</th>
+        <th>From</th>
+        <th>To</th>
+        <th>Reason</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 <button id="calendarBtn"  class="calendar-btn" >View Calendar</button>
 <div id="calendar2026" style="display: none;"></div>
 

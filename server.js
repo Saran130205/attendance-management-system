@@ -113,7 +113,6 @@ app.delete("/api/admin/delete-user/:id", (req, res) => {
 });
 
 //Admin Attendance
-// ================= ADMIN ATTENDANCE =================
 app.get("/api/admin/attendance", (req, res) => {
   if (!req.session.user || req.session.user.role !== "admin")
     return res.status(403).json({ message: "Admin only" });
@@ -181,6 +180,60 @@ app.get("/api/admin/holidays", (req, res) => {
 
     res.json(results);
   });
+});
+
+// Leave req from emp
+// Admin - Get All Leave Requests
+app.get("/api/admin/leave-requests", (req, res) => {
+
+  if (!req.session.user || req.session.user.role !== "admin") {
+    return res.status(403).json({ message: "Admin only" });
+  }
+
+  const sql = `
+    SELECT lr.*, u.name AS employee_name
+    FROM leave_requests lr
+    JOIN users u ON lr.employee_id = u.id
+    ORDER BY lr.created_at DESC
+  `;
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ message: "Error fetching leave requests" });
+    }
+
+    res.json(results);
+  });
+
+});
+
+//leave app/rej
+
+app.put("/api/admin/update-leave/:id", (req, res) => {
+
+  if (!req.session.user || req.session.user.role !== "admin") {
+    return res.status(403).json({ message: "Admin only" });
+  }
+
+  const { status } = req.body;
+  const leave_id = req.params.id;
+
+  const sql = `
+    UPDATE leave_requests
+    SET status = ?
+    WHERE id = ?
+  `;
+
+  db.query(sql, [status, leave_id], (err) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ message: "Error updating leave status" });
+    }
+
+    res.json({ message: "Leave status updated successfully" });
+  });
+
 });
 // ================= EMPLOYEE ROUTES =================
 app.get("/api/employee/attendance", (req, res) => {
@@ -308,6 +361,55 @@ app.post("/api/employee/checkout", (req, res) => {
     res.json({ message: "Checked Out Successfully" });
   });
 });
+
+//LEAVE REQUEST 
+app.post("/api/employee/request-leave", (req, res) => {
+  if (!req.session.user || req.session.user.role !== "employee") {
+    return res.status(403).json({ message: "Employee only" });
+  }
+
+  const { from_date, to_date, reason } = req.body;
+  const employee_id = req.session.user.id;
+
+  if (!from_date || !to_date || !reason) {
+    return res.status(400).json({ message: "All fields required" });
+  }
+
+  const sql = `
+    INSERT INTO leave_requests (employee_id, from_date, to_date, reason)
+    VALUES (?, ?, ?, ?)
+  `;
+
+  db.query(sql, [employee_id, from_date, to_date, reason], (err) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ message: "Error submitting leave" });
+    }
+
+    res.json({ message: "Leave request submitted successfully" });
+  });
+});
+
+//leave status of employee
+
+app.get("/api/employee/my-leaves", (req, res) => {
+  if (!req.session.user || req.session.user.role !== "employee") {
+    return res.status(403).json({ message: "Employee only" });
+  }
+
+  const sql = `
+    SELECT * FROM leave_requests
+    WHERE employee_id = ?
+    ORDER BY created_at DESC
+  `;
+
+  db.query(sql, [req.session.user.id], (err, results) => {
+    if (err) return res.status(500).json({ message: "Error fetching leaves" });
+
+    res.json(results);
+  });
+});
+
 
 // ================= LOGOUT =================
 app.post("/api/logout", (req, res) => {
