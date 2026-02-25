@@ -1,241 +1,177 @@
-/* ===== Global ===== */
-body {
+/* ===== RESET ===== */
+* {
+  box-sizing: border-box;
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(to right, #4facfe, #00f2fe);
-
-  min-height: 100vh;
-  padding: 30px;
+  padding: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
 }
 
-/* ===== Main Heading ===== */
+/* ===== BODY ===== */
+body {
+  background:  #98aee6;;
+  padding: 30px;
+  color: #2c3e50;
+}
+
+/* ===== HEADER ===== */
 h1 {
   text-align: center;
-  color: white;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
 }
 
-/* ===== Logout Button ===== */
-button {
-  padding: 8px 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: 0.3s ease;
+/* ===== TOP BAR ===== */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
-/* Logout specific */
-button[onclick="logout()"] {
-  background: #ff6b6b;
-  color: white;
-  position: absolute;
-  top: 30px;
-  right: 30px;
+#welcomeText {
+  font-weight: 600;
+  font-size: 18px;
 }
 
-button[onclick="logout()"]:hover {
-  background: #e55050;
+/* ===== CARD ===== */
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+  margin-bottom: 25px;
 }
 
-/* ===== Section Title ===== */
-h2 {
-  color: white;
+/* ===== CARD HEADER ===== */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 15px;
 }
 
-/* ===== Attendance Card ===== */
-#attendanceTable {
-  width: 100%;
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  border-collapse: collapse;
-}
-
-/* ===== Table Header ===== */
-#attendanceTable thead {
-  background: #2c5364;
-  color: white;
-}
-
-#attendanceTable th,
-#attendanceTable td {
-  padding: 12px;
-  text-align: center;
-  border-bottom: 1px solid #ddd;
-}
-
-/* ===== Hover Effect ===== */
-#attendanceTable tbody tr:hover {
-  background: #f1f3f6;
-}
-
-.profile-card {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 30px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-
-.profile-card input,
-.profile-card select {
+/* ===== FORM ===== */
+input, select, textarea {
   padding: 10px;
-  margin-right: 10px;
-  margin-bottom: 10px;
   border-radius: 6px;
   border: 1px solid #ccc;
+  margin-bottom: 12px;
+  width: 100%;
 }
 
-.profile-header {
-  text-align: right;
-  margin-bottom: 10px;
+textarea {
+  resize: none;
+  height: 80px;
 }
 
-#editProfileBtn {
-  background: #3498db;
-  color: white;
-  padding: 6px 14px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
+input:focus, select:focus, textarea:focus {
+  border-color: #4a69bd;
+  outline: none;
 }
 
-#editProfileBtn:hover {
-  background: #2980b9;
-}
-
-#saveProfileBtn {
-  background: #2ecc71;
-  color: white;
+/* ===== BUTTONS ===== */
+button {
   padding: 8px 16px;
   border-radius: 6px;
   border: none;
   cursor: pointer;
+  transition: 0.3s ease;
+  font-weight: 500;
 }
 
-#saveProfileBtn:hover {
-  background: #27ae60;
+.primary-btn {
+  background: #4a69bd;
+  color: white;
 }
 
-.profile-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.primary-btn:hover {
+  background: #3b57a0;
 }
 
-.action-buttons button {
-  margin-left: 10px;
-  padding: 8px 14px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-#checkInBtn {
+.success-btn {
   background: #2ecc71;
   color: white;
 }
 
-#checkInBtn:hover {
+.success-btn:hover {
   background: #27ae60;
 }
 
-#checkOutBtn {
+.danger-btn {
   background: #e74c3c;
   color: white;
 }
 
-#checkOutBtn:hover {
+.danger-btn:hover {
   background: #c0392b;
 }
 
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f6f9;
-  margin: 0;
-  padding: 0;
-}
-
-.navbar {
-  background-color: #2c3e50;
+.logout-btn {
+  background: #e74c3c;
   color: white;
-  padding: 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
-.container {
-  padding: 30px;
+.logout-btn:hover {
+  background: #c0392b;
 }
 
-.primary-btn {
-  background-color: #3498db;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
+.small {
+  padding: 6px 12px;
+  font-size: 13px;
 }
 
-.success-btn {
-  background-color: #2ecc71;
-  color: white;
-  padding: 8px 15px;
-  border: none;
-  margin-top: 10px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.danger-btn {
-  background-color: #e74c3c;
-  color: white;
-  padding: 8px 15px;
-  border: none;
-  margin-top: 10px;
-  margin-left: 10px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.leave-form {
-  background-color: white;
-  padding: 20px;
-  margin-top: 20px;
-  width: 300px;
-  border-radius: 8px;
-  box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
-}
-
-.leave-form input,
-.leave-form textarea {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
+/* ===== ACTION BUTTONS ===== */
+.action-buttons {
   margin-bottom: 15px;
 }
 
+.action-buttons button {
+  margin-right: 10px;
+}
+
+/* ===== TABLE ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: #2c3e50;
+  color: white;
+}
+
+th, td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+tbody tr:hover {
+  background: #f2f6ff;
+}
+
+/* ===== STATUS BADGE ===== */
+.status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.status.pending {
+  background: #f1c40f;
+}
+
+.status.approved {
+  background: #2ecc71;
+  color: white;
+}
+
+.status.rejected {
+  background: #e74c3c;
+  color: white;
+}
+
+/* ===== HIDDEN ===== */
 .hidden {
   display: none;
 }
-
-button:hover {
-  opacity: 0.9;
-}
-/* ===== Responsive Fix ===== */
-/* @media (max-width: 768px) {
-  body {
-    padding: 15px;
-  }
-
-  #attendanceTable th,
-  #attendanceTable td {
-    padding: 8px;
-    font-size: 12px;
-  }
-} */

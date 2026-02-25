@@ -2,97 +2,117 @@
 <html>
 <head>
   <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="/admin/admin.css">
-
+  <link rel="stylesheet" href="admin.css">
 </head>
 <body>
-<link rel="stylesheet" href="admin.css">
-<h1>Admin Dashboard</h1>
-<h3 id="welcomeText" style="color:white;"></h3>
-<button onclick="logout()" class="logout-btn " >Logout</button>
-<button id="viewLeaveBtn" class="primary-btn">View Leave Requests</button>
 
-<div id="leaveSection" class="hidden">
-  <h3>Leave Requests</h3>
-  <table id="leaveTable">
-    <thead>
-      <tr>
-        <th>Employee</th>
-        <th>From</th>
-        <th>To</th>
-        <th>Reason</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <h1>Admin Dashboard</h1>
+
+  <!-- ===== TOP BAR ===== -->
+  <div class="top-bar">
+    <div class="top-left">
+      <span id="welcomeText"></span>
+      <button id="viewLeaveBtn" class="primary-btn">View Leave Requests</button>
+      <button id="calendarBtn" class="calendar-btn">View Calendar</button>
+    </div>
+
+    <div class="top-right">
+      <button onclick="logout()" class="logout-btn">Logout</button>
+    </div>
+  </div>
+
+  <!-- ===== LEAVE SECTION ===== -->
+  <div id="leaveSection" class="card hidden">
+    <h2>Leave Requests</h2>
+    <table id="leaveTable">
+      <thead>
+        <tr>
+          <th>Employee</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Reason</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- ===== CREATE USER ===== -->
+  <div class="card">
+    <h2>Create User</h2>
+    <form id="createForm">
+      <input type="text" id="name" placeholder="Name" required>
+      <input type="text" id="password" placeholder="Password" required>
+
+      <select id="role" required>
+        <option value="">Select Role</option>
+        <option value="admin">Admin</option>
+        <option value="employee">Employee</option>
+      </select>
+
+      <input type="text" id="department" placeholder="Department" required>
+      <button type="submit" class="primary-btn">Create</button>
+    </form>
+  </div>
+
+  <!-- ===== USERS ===== -->
+  <div class="card">
+    <h2>All Users</h2>
+    <div class="search">
+      <input type="text" id="searchInput" placeholder="Search by Name...">
+    </div>
+    <table id="userTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Role</th>
+          <th>Department</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- ===== ATTENDANCE ===== -->
+  <div class="card">
+    <h2>Attendance Details</h2>
+    <div class="search">
+      <input type="text" id="searchInput" placeholder="Search by Name...">
+    </div>
+    <table id="attendanceTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Role</th>
+          <th>Date</th>
+          <th>Check In</th>
+          <th>Check Out</th>
+          <th>Total Duration</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- ===== CALENDAR ===== -->
+
+<div id="calendarOverlay" class="overlay hidden">
+  <div class="calendar-modal">
+
+    <div class="calendar-header">
+      <h2>Year Calendar</h2>
+      <button id="closeCalendar" class="close-btn">✖</button>
+    </div>
+
+    <div id="calendar2026"></div>
+
+  </div>
 </div>
-<button id="calendarBtn"  class="calendar-btn" >View Calendar</button>
-<div id="calendar2026" style="display: none;"></div>
-
-<h2>Create User</h2>
-
-<form id="createForm">
-  <input type="text" id="name" placeholder="Name" required>
-  <input type="text" id="password" placeholder="Password" required>
-
-  <select id="role" required>
-    <option value="">Select Role</option>
-    <option value="admin">Admin</option>
-    <option value="employee">Employee</option>
-  </select>
-
-  <input type="text" id="department" placeholder="Department" required>
-  <button type="submit">Create</button>
-</form>
-<div class="search">
-<input type="text" id="searchInput" placeholder="Search by Name...">
-</div>
-<h2>All Users</h2>
-
-<table border="1" id="userTable">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Name</th>
-      <th>Role</th>
-      <th>Department</th>
-      <th>Action</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-
-<h2>Attendance Details</h2>
-
-<table border="1" id="attendanceTable">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Role</th>
-      <th>Date</th>
-      <th>Check In</th>
-      <th>Check Out</th>
-      <th>Total Duration</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-
-<!-- <h2>Present Users (Live)</h2>
-
-<table border="1" id="presentTable">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Role</th>
-      <th>Check In</th>
-      <th>Live Duration</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table> -->
-
-<script src="admin.js"></script>
+  
 </body>
+<script src="admin.js" defer></script>
 </html>

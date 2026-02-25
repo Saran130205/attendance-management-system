@@ -3,86 +3,112 @@
 <head>
   <title>Employee Dashboard</title>
   <link rel="stylesheet" href="employee.css">
-
 </head>
 <body>
 
-<h1>Employee Dashboard</h1>
-<h3 id="welcomeText" style="color:white;"></h3>
-<button onclick="logout()">Logout</button>
-<div class="container">
-    <button id="leaveBtn" class="primary-btn">Request Leave</button>
+  <h1>Employee Dashboard</h1>
 
-    <div id="leaveForm" class="leave-form hidden">
-      <h3>Apply Leave</h3>
-
-      <label>From Date</label>
-      <input type="date" id="fromDate">
-
-      <label>To Date</label>
-      <input type="date" id="toDate">
-
-      <label>Reason</label>
-      <textarea id="reason" placeholder="Enter reason..."></textarea>
-
-      <button id="submitLeave" class="success-btn">Submit</button>
-      <button id="cancelLeave" class="danger-btn">Cancel</button>
+  <!-- ===== TOP BAR ===== -->
+  <div class="top-bar">
+    <div class="left">
+      <span id="welcomeText"></span>
+    </div>
+    <div class="right">
+      <button onclick="logout()" class="logout-btn">Logout</button>
     </div>
   </div>
 
+  <!-- ===== LEAVE SECTION ===== -->
+  <div class="card">
+    <button id="leaveBtn" class="primary-btn">Request Leave</button>
 
+    <div id="leaveSection" class="hidden">
 
-<h2>My Profile</h2>
+      <div class="leave-form">
+        <h3>Apply Leave</h3>
 
-<div class="profile-card">
+        <label>From</label>
+        <input type="date" id="fromDate">
 
-  <div class="profile-header">
-    <button id="editBtn">Edit Profile</button>
+        <label>To</label>
+        <input type="date" id="toDate">
+
+        <label>Reason</label>
+        <textarea id="reason"></textarea>
+
+        <button id="submitLeave" class="success-btn">Submit</button>
+      </div>
+
+      <h3>Your Leave History</h3>
+
+      <table id="myLeaveTable">
+        <thead>
+          <tr>
+            <th>From</th>
+            <th>To</th>
+            <th>Reason</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+    </div>
   </div>
-  <div class="action-buttons">
-  <button id="checkInBtn">Check In</button>
-  <button id="checkOutBtn">Check Out</button>
-</div>
-    
 
-  <form id="profileForm">
+  <!-- ===== PROFILE ===== -->
+  <div class="card">
+    <div class="card-header">
+      <h2>My Profile</h2>
+      <button id="editBtn" class="primary-btn small">Edit Profile</button>
+    </div>
 
-    <input type="text" id="name" disabled>
-    <input type="text" id="department" disabled>
+    <div class="action-buttons">
+      <button id="checkInBtn" class="success-btn">Check In</button>
+      <button id="checkOutBtn" class="danger-btn">Check Out</button>
+    </div>
 
-    <select id="gender" disabled>
-      <option value="">Select Gender</option>
-      <option value="Male">Male</option>
-      <option value="Female">Female</option>
-    </select>
+    <form id="profileForm">
 
-    <input type="date" id="dob" disabled>
-    <input type="number" id="age" placeholder="Age" disabled>
-    <input type="text" id="contact" placeholder="Contact" disabled>
-    <input type="password" id="password" placeholder="New Password" disabled>
+      <input type="text" id="name" disabled>
+      <input type="text" id="department" disabled>
 
-    <button type="submit" id="saveBtn" style="display:none;">
-      Save Changes
-    </button>
+      <select id="gender" disabled>
+        <option value="">Select Gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+      </select>
 
-  </form>
-</div>
+      <input type="date" id="dob" disabled>
+      <input type="number" id="age" placeholder="Age" disabled>
+      <input type="text" id="contact" placeholder="Contact" disabled>
+      <input type="password" id="password" placeholder="New Password" disabled>
 
-<h2>My Attendance</h2>
+      <button type="submit" id="saveBtn" class="success-btn" style="display:none;">
+        Save Changes
+      </button>
 
-<table border="1" id="attendanceTable">
-  <thead>
-  <tr>
-    <th>Date</th>
-    <th>Status</th>
-    <th>Check In</th>
-    <th>Check Out</th>
-    <th>Worked Hours</th> 
-  </tr>
-</thead>
-  <tbody></tbody>
-</table>
+    </form>
+  </div>
 
-<script src="employee.js"></script>
+  <!-- ===== ATTENDANCE ===== -->
+  <div class="card">
+    <h2>My Attendance</h2>
+
+    <table id="attendanceTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Check In</th>
+          <th>Check Out</th>
+          <th>Worked Hours</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script src="employee.js"></script>
 </body>
 </html>

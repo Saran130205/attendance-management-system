@@ -182,7 +182,6 @@ app.get("/api/admin/holidays", (req, res) => {
   });
 });
 
-// Leave req from emp
 // Admin - Get All Leave Requests
 app.get("/api/admin/leave-requests", (req, res) => {
 
@@ -211,31 +210,52 @@ app.get("/api/admin/leave-requests", (req, res) => {
 //leave app/rej
 
 app.put("/api/admin/update-leave/:id", (req, res) => {
-
   if (!req.session.user || req.session.user.role !== "admin") {
     return res.status(403).json({ message: "Admin only" });
   }
 
+  const leaveId = req.params.id;
   const { status } = req.body;
-  const leave_id = req.params.id;
 
-  const sql = `
-    UPDATE leave_requests
-    SET status = ?
-    WHERE id = ?
-  `;
+  const sql = "UPDATE leave_requests SET status = ? WHERE id = ?";
 
-  db.query(sql, [status, leave_id], (err) => {
+  db.query(sql, [status, leaveId], (err) => {
     if (err) {
       console.log(err);
-      return res.status(500).json({ message: "Error updating leave status" });
+      return res.status(500).json({ message: "Update failed" });
     }
 
-    res.json({ message: "Leave status updated successfully" });
+    res.json({ message: "Leave updated successfully" });
   });
+});
 
+//View Status
+
+app.get("/api/admin/status/:id", (req, res) => {
+  if (!req.session.user || req.session.user.role !== "admin") {
+    return res.status(403).json({ message: "Admin only" });
+  }
+
+  const employeeId = req.params.id;
+
+  const sql = `
+    SELECT * FROM attendance
+    WHERE user_id = ?
+    AND date = CURDATE()
+  `;
+
+  db.query(sql, [employeeId], (err, result) => {
+    if (err) return res.status(500).json(err);
+
+    if (result.length > 0) {
+      return res.json({ status: "Present" });
+    } else {
+      return res.json({ status: "Absent" });
+    }
+  });
 });
 // ================= EMPLOYEE ROUTES =================
+
 app.get("/api/employee/attendance", (req, res) => {
 
   if (!req.session.user || req.session.user.role !== "employee") {

@@ -1,5 +1,7 @@
+console.log("ADMIN JS LOADED");
+
 document.addEventListener("DOMContentLoaded", function () {
-  const tableBody = document.querySelector("#userTable tbody");
+  let allUsers = [];
 
   async function checkAuth() {
     const res = await fetch("/api/me");
@@ -10,147 +12,207 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const user = await res.json();
     document.getElementById("welcomeText").innerText = `Hello ${user.name}..,`;
+
     if (user.role !== "admin") {
       window.location.href = "/common/common.html";
       return;
     }
-    await loadHolidays();
+
     loadUsers();
     loadAttendance();
-    generateCalendar2026();
   }
 
   checkAuth();
-  //load Users
+
+  // ================= USERS =================
+
   async function loadUsers() {
     const res = await fetch("/api/admin/users");
-    const users = await res.json();
+    allUsers = await res.json();
+    renderUsers(allUsers);
+    return; 
+
+    // const tbody = document.querySelector("#userTable tbody");
+    // tbody.innerHTML = "";
+
+    // users.forEach(user => {
+    //   const row = document.createElement("tr");
+
+    //   row.innerHTML = `
+    //     <td>${user.id}</td>
+    //     <td>${user.name}</td>
+    //     <td>${user.role}</td>
+    //     <td>${user.department}</td>
+    //     <td>
+    //       <button class="edit-btn" data-id="${user.id}">Edit</button>
+    //       <button class="delete-btn" data-id="${user.id}">Delete</button>
+    //       <button id="status-btn-${user.id}" onclick="viewStatus(${user.id})">View Status</button>
+    //     </td>
+    //   `;
+
+    //   tbody.appendChild(row);
+    // });
+
+    function renderUsers(users) {
+  const tbody = document.querySelector("#userTable tbody");
+  tbody.innerHTML = "";
+
+  users.forEach(user => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${user.id}</td>
+      <td>${user.name}</td>
+      <td>${user.role}</td>
+      <td>${user.department}</td>
+      <td>
+        <button class="edit-btn" data-id="${user.id}">Edit</button>
+        <button class="delete-btn" data-id="${user.id}">Delete</button>
+        <button id="status-btn-${user.id}" onclick="viewStatus(${user.id})">
+          View Status
+        </button>
+      </td>
+    `;
+
+    tbody.appendChild(row);
+  });
+}
+  }
+  window.viewStatus = function (userId) {
+  fetch(`/api/admin/status/${userId}`)
+    .then(res => res.json())
+    .then(data => {
+      const btn = document.getElementById(`status-btn-${userId}`);
+
+      if (data.status === "Present") {
+        btn.innerText = "Present";
+        btn.style.backgroundColor = "green";
+        btn.style.color = "white";
+      } else {
+        btn.innerText = "Absent";
+        btn.style.backgroundColor = "red";
+        btn.style.color = "white";
+      }
+
+      // Optional: Disable button after click
+      btn.disabled = true;
+    })
+    .catch(err => {
+      console.error(err);
+    });
+}
+// ================= SEARCH =================
+
+document.getElementById("searchInput")
+  .addEventListener("input", function () {
+
+    const searchValue = this.value.toLowerCase();
+
+    const filteredUsers = allUsers.filter(user =>
+      user.name.toLowerCase().includes(searchValue) ||
+      user.role.toLowerCase().includes(searchValue) ||
+      user.department.toLowerCase().includes(searchValue)
+    );
 
     const tbody = document.querySelector("#userTable tbody");
-    if (!tbody) {
-      console.log("User table not found");
-      return;
-    }
     tbody.innerHTML = "";
 
-    users.forEach((user) => {
-      const row = document.createElement("tr"); // 🔥 THIS WAS MISSING
+    filteredUsers.forEach(user => {
+      const row = document.createElement("tr");
 
       row.innerHTML = `
-  <td>${user.id}</td>
-  <td>${user.name}</td>
-  <td>${user.role}</td>
-  <td>${user.department}</td>
-  <td>
-    <button class="edit-btn" data-id="${user.id}">Edit</button>
-    <button class="delete-btn" data-id="${user.id}">Delete</button>
-    <button class="view-attendance" data-id="${user.id}">View Attendance </button> 
-  </td>
-`;
+        <td>${user.id}</td>
+        <td>${user.name}</td>
+        <td>${user.role}</td>
+        <td>${user.department}</td>
+        <td>
+          <button class="edit-btn" data-id="${user.id}">Edit</button>
+          <button class="delete-btn" data-id="${user.id}">Delete</button>
+          <button id="status-btn-${user.id}" onclick="viewStatus(${user.id})">
+            View Status
+          </button>
+        </td>
+      `;
+
       tbody.appendChild(row);
     });
-  }
 
-  document.querySelector("#userTable").addEventListener("click", async (e) => {
-    // ================= DELETE =================
+});
+
+  document.getElementById("userTable").addEventListener("click", async (e) => {
+
     if (e.target.classList.contains("delete-btn")) {
       const id = e.target.dataset.id;
 
-      const res = await fetch(`/api/admin/delete-user/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        console.log("Delete failed:", res.status);
-        return;
-      }
-
+      await fetch(`/api/admin/delete-user/${id}`, { method: "DELETE" });
       loadUsers();
     }
 
-    // ================= EDIT =================
     if (e.target.classList.contains("edit-btn")) {
       const id = e.target.dataset.id;
 
       const res = await fetch("/api/admin/users");
       const users = await res.json();
-
-      const user = users.find((u) => u.id == id);
-      if (!user) return;
+      const user = users.find(u => u.id == id);
 
       document.getElementById("name").value = user.name;
       document.getElementById("role").value = user.role;
       document.getElementById("department").value = user.department;
-
       document.getElementById("createForm").dataset.editId = id;
     }
+
   });
-  //loadattendance
+
+  // ================= ATTENDANCE =================
 
   async function loadAttendance() {
-    const res = await fetch("/api/admin/attendance");
-    const data = await res.json();
+  const res = await fetch("/api/admin/attendance");
+  const data = await res.json();
 
-    const tbody = document.querySelector("#attendanceTable tbody");
-    tbody.innerHTML = "";
+  const tbody = document.querySelector("#attendanceTable tbody");
+  tbody.innerHTML = "";
 
-    data.forEach((record) => {
-      // ✅ Extract YYYY-MM-DD only
-      const dateOnly = record.date.split("T")[0];
+  data.forEach(record => {
 
-      // ✅ Combine date + time properly
-      const checkInDate = record.check_in
-        ? new Date(`${dateOnly}T${record.check_in}`)
-        : null;
+    const dateOnly = record.date.split("T")[0];
 
-      const checkOutDate = record.check_out
-        ? new Date(`${dateOnly}T${record.check_out}`)
-        : null;
+    const row = document.createElement("tr");
 
-      const checkInFormatted = checkInDate
-        ? checkInDate.toLocaleString("en-IN", {
-            timeZone: "Asia/Kolkata",
-          })
-        : "-";
+    // ✅ Calculate Total Duration
+    let totalDuration = "-";
 
-      const checkOutFormatted = checkOutDate
-        ? checkOutDate.toLocaleString("en-IN", {
-            timeZone: "Asia/Kolkata",
-          })
-        : "-";
+    if (record.check_in && record.check_out) {
 
-      let duration = "-";
+      const checkIn = new Date(`1970-01-01T${record.check_in}`);
+      const checkOut = new Date(`1970-01-01T${record.check_out}`);
 
-      if (checkInDate && checkOutDate) {
-        const diffMs = checkOutDate - checkInDate;
-        const totalSeconds = Math.floor(diffMs / 1000);
+      const diffMs = checkOut - checkIn;
 
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
+      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
 
-        duration = `${hours}h ${minutes}m ${seconds}s`;
-      }
+      totalDuration = `${hours}h ${minutes}m ${seconds}s`;
+    }
 
-      const row = document.createElement("tr");
-
-      row.innerHTML = `
+    row.innerHTML = `
       <td>${record.name}</td>
       <td>${record.role}</td>
-      <td>${new Date(dateOnly).toLocaleDateString("en-IN")}</td>
-      <td>${checkInFormatted}</td>
-      <td>${checkOutFormatted}</td>
-      <td>${duration}</td>
+      <td>${dateOnly}</td>
+      <td>${record.check_in || "-"}</td>
+      <td>${record.check_out || "-"}</td>
+      <td>${totalDuration}</td>
     `;
 
-      tbody.appendChild(row);
-    });
-  }
+    tbody.appendChild(row);
+  });
+}
 
-  // ================= FORM SUBMIT =================
-  document
-    .getElementById("createForm")
+  // ================= CREATE / UPDATE USER =================
+
+  document.getElementById("createForm")
     .addEventListener("submit", async (e) => {
+
       e.preventDefault();
 
       const name = document.getElementById("name").value;
@@ -161,20 +223,18 @@ document.addEventListener("DOMContentLoaded", function () {
       const editId = e.target.dataset.editId;
 
       if (editId) {
-        // UPDATE
         await fetch(`/api/admin/update-user/${editId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, role, department }),
+          body: JSON.stringify({ name, role, department })
         });
 
         delete e.target.dataset.editId;
       } else {
-        // CREATE
         await fetch("/api/admin/create-user", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, password, role, department }),
+          body: JSON.stringify({ name, password, role, department })
         });
       }
 
@@ -182,268 +242,198 @@ document.addEventListener("DOMContentLoaded", function () {
       loadUsers();
     });
 
-  // ================= DELETE =================
-  // async function deleteUser(id) {
-  //   await fetch(`/admin/delete-user/${id}`, {
-  //     method: "DELETE",
-  //   });
-  //   loadUsers();
-  // }
+  // ================= LEAVE APPROVAL =================
 
-  // ===== View Attendance =====
-  document.querySelector("#userTable").addEventListener("click", async (e) => {
-    if (e.target.classList.contains("view-attendance")) {
-      const id = e.target.dataset.id;
-      const res = await fetch(`/api/admin/view-attendance/${id}`);
-      const data = await res.json();
+  const viewLeaveBtn = document.getElementById("viewLeaveBtn");
+  const leaveSection = document.getElementById("leaveSection");
 
-      const tbody = document.querySelector("#attendanceTable tbody");
-      tbody.innerHTML = "";
-      data.forEach((record) => {
-        const dateOnly = record.date.split("T")[0];
+  leaveSection.classList.add("hidden");
 
-        const checkInDate = record.check_in
-          ? new Date(`${dateOnly}T${record.check_in}`)
-          : null;
+  viewLeaveBtn.addEventListener("click", async () => {
 
-        const checkOutDate = record.check_out
-          ? new Date(`${dateOnly}T${record.check_out}`)
-          : null;
+    leaveSection.classList.toggle("hidden");
 
-        const checkInFormatted = checkInDate
-          ? checkInDate.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
-          : "-";
-
-        const checkOutFormatted = checkOutDate
-          ? checkOutDate.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
-          : "-";
-
-        let duration = "-";
-
-        if (checkInDate && checkOutDate) {
-          const diffMs = checkOutDate - checkInDate;
-          const totalSeconds = Math.floor(diffMs / 1000);
-
-          const hours = Math.floor(totalSeconds / 3600);
-          const minutes = Math.floor((totalSeconds % 3600) / 60);
-          const seconds = totalSeconds % 60;
-
-          duration = `${hours}h ${minutes}m ${seconds}s`;
-        }
-
-        const row = document.createElement("tr");
-
-        row.innerHTML = `
-        <td>-</td>
-        <td>-</td>
-        <td>${new Date(dateOnly).toLocaleDateString("en-IN")}</td>
-        <td>${checkInFormatted}</td>
-        <td>${checkOutFormatted}</td>
-        <td>${duration}</td>
-      `;
-
-        tbody.appendChild(row);
-      });
+    if (!leaveSection.classList.contains("hidden")) {
+      await loadLeaveRequests();
     }
   });
 
-  //Search
+  async function loadLeaveRequests() {
 
-  document.getElementById("searchInput").addEventListener("keyup", function () {
-    const filter = this.value.toLowerCase();
-    const rows = document.querySelectorAll("#userTable tbody tr");
+    const res = await fetch("/api/admin/leave-requests");
+    const data = await res.json();
 
-    rows.forEach((row) => {
-      if (row.cells.length > 1) {
-        const name = row.cells[1].innerText.toLowerCase();
+    const tbody = document.querySelector("#leaveTable tbody");
+    tbody.innerHTML = "";
 
-        if (name.includes(filter)) {
-          row.style.display = "";
-        } else {
-          row.style.display = "none";
-        }
-      }
+    if (data.length === 0) {
+      tbody.innerHTML = "<tr><td colspan='6'>No leave requests</td></tr>";
+      return;
+    }
+
+    data.forEach(leave => {
+
+      const fromDate = leave.from_date.split("T")[0];
+      const toDate = leave.to_date.split("T")[0];
+
+      const row = document.createElement("tr");
+
+      row.innerHTML = `
+        <td>${leave.employee_name}</td>
+        <td>${fromDate}</td>
+        <td>${toDate}</td>
+        <td>${leave.reason}</td>
+        <td>
+          <span class="status ${leave.status.toLowerCase()}">
+            ${leave.status}
+          </span>
+        </td>
+        <td>
+          ${leave.status === "Pending" ? `
+            <button class="approve-btn" data-id="${leave.id}">Approve</button>
+            <button class="reject-btn" data-id="${leave.id}">Reject</button>
+          ` : "-"}
+        </td>
+      `;
+
+      tbody.appendChild(row);
     });
+  }
+
+  document.getElementById("leaveTable").addEventListener("click", async (e) => {
+
+    if (e.target.classList.contains("approve-btn") ||
+        e.target.classList.contains("reject-btn")) {
+
+      const id = e.target.dataset.id;
+
+      const status = e.target.classList.contains("approve-btn")
+        ? "Approved"
+        : "Rejected";
+
+      await fetch(`/api/admin/update-leave/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status })
+      });
+
+      await loadLeaveRequests();
+    }
   });
-  //===== Calendar ======
 
-  // ===================== HOLIDAYS =====================
+  //calendar 
 
-  let holidays = [];
+let holidays = [];
+
+const calendarBtn = document.getElementById("calendarBtn");
+const overlay = document.getElementById("calendarOverlay");
+const closeCalendar = document.getElementById("closeCalendar");
+const calendar = document.getElementById("calendar2026");
+
+// Safety check
+if (calendarBtn && overlay && closeCalendar && calendar) {
+
+  overlay.classList.add("hidden");
 
   async function loadHolidays() {
     try {
       const res = await fetch("/api/admin/holidays");
       const data = await res.json();
 
-      console.log("RAW HOLIDAY DATA:", data);
+      holidays = data.map(h => ({
+        date: new Date(h.holidays_date).toISOString().split("T")[0]
+      }));
 
-      holidays = data.map((h) => {
-        const dateOnly = new Date(h.holidays_date).toLocaleDateString("en-CA");
-        // en-CA gives YYYY-MM-DD format
-
-        return {
-          date: dateOnly,
-        };
-      });
-
-      console.log("Formatted Holidays:", holidays);
     } catch (err) {
       console.error("Holiday Load Error:", err);
     }
   }
 
-  //===== calendar =====
-  function generateCalendar2026() {
-    const calendar = document.getElementById("calendar2026");
-    if (!calendar) return;
+  function generateCalendar() {
 
     calendar.innerHTML = "";
-
     const year = new Date().getFullYear();
-    const today = new Date();
 
     for (let month = 0; month < 12; month++) {
-      const monthContainer = document.createElement("div");
-      monthContainer.classList.add("month-box");
 
-      const monthTitle = document.createElement("h3");
-      monthTitle.innerText = new Date(year, month).toLocaleString("en-IN", {
-        month: "long",
-      });
+      const monthBox = document.createElement("div");
+      monthBox.classList.add("month-box");
 
-      monthContainer.appendChild(monthTitle);
+      const title = document.createElement("h3");
+      title.innerText = new Date(year, month)
+        .toLocaleString("en-IN", { month: "long" });
 
-      const daysGrid = document.createElement("div");
-      daysGrid.classList.add("days-grid");
+      monthBox.appendChild(title);
+
+      const grid = document.createElement("div");
+      grid.classList.add("days-grid");
 
       const firstDay = new Date(year, month, 1).getDay();
       const daysInMonth = new Date(year, month + 1, 0).getDate();
 
       for (let i = 0; i < firstDay; i++) {
-        const empty = document.createElement("div");
-        daysGrid.appendChild(empty);
+        grid.appendChild(document.createElement("div"));
       }
 
       for (let day = 1; day <= daysInMonth; day++) {
+
         const fullDate = new Date(year, month, day);
         const weekDay = fullDate.getDay();
 
-        const dayBox = document.createElement("div");
-        dayBox.classList.add("day-box");
-        dayBox.innerText = day;
-
         const today = new Date();
+        const todayString = today.toISOString().split("T")[0];
+        // const dateString = fullDate.toISOString().split("T")[0];
 
-        if (
-          fullDate.getDate() === today.getDate() &&
-          fullDate.getMonth() === today.getMonth() &&
-          fullDate.getFullYear() === today.getFullYear()
-        ) {
-          dayBox.classList.add("today");
+        const box = document.createElement("div");
+        box.classList.add("day-box");
+        box.innerText = day;
+
+        const dateString = fullDate.toISOString().split("T")[0];
+
+        if (weekDay === 0) box.classList.add("sunday");
+        if (weekDay === 6) box.classList.add("saturday");
+
+        if (holidays.some(h => h.date === dateString)) {
+          box.classList.add("holiday");
         }
 
-        const currentDateString = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-
-        // Sunday
-        if (weekDay === 0) {
-          dayBox.classList.add("sunday");
+        if (dateString === todayString) {
+        box.classList.add("today");
         }
 
-        // Saturday
-        if (weekDay === 6) {
-          dayBox.classList.add("saturday");
-        }
-
-        // Govt Holiday
-        const holidayObj = holidays.find((h) => h.date === currentDateString);
-        if (holidayObj) {
-          dayBox.classList.add("holiday");
-          dayBox.title = holidayObj.name || "Holiday";
-        }
-
-        // ✅ TODAY HIGHLIGHT (SAFE METHOD)
-        if (
-          day === today.getDate() &&
-          month === today.getMonth() &&
-          year === today.getFullYear()
-        ) {
-          dayBox.classList.add("today");
-        }
-
-        daysGrid.appendChild(dayBox);
+        grid.appendChild(box);
       }
 
-      monthContainer.appendChild(daysGrid);
-      calendar.appendChild(monthContainer);
+      monthBox.appendChild(grid);
+      calendar.appendChild(monthBox);
     }
   }
-  // ===================== CALENDAR TOGGLE =====================
 
-  const calendarBtn = document.getElementById("calendarBtn");
-  const calendarContainer = document.getElementById("calendar2026");
-
-  if (calendarBtn && calendarContainer) {
-    calendarContainer.style.display = "none";
-
-    calendarBtn.addEventListener("click", async () => {
-      if (calendarContainer.style.display === "none") {
-        await loadHolidays();
-        generateCalendar2026();
-
-        calendarContainer.style.display = "grid";
-        calendarBtn.innerText = "Hide Calendar";
-      } else {
-        calendarContainer.style.display = "none";
-        calendarBtn.innerText = "View Calendar";
-      }
-    });
-  }
-// lrave approvall
-  document.addEventListener("DOMContentLoaded", function () {
-
-  const viewLeaveBtn = document.getElementById("viewLeaveBtn");
-  const leaveSection = document.getElementById("leaveSection");
-
-  viewLeaveBtn.addEventListener("click", function () {
-
-    leaveSection.classList.remove("hidden");
-
-    fetch("/api/admin/leave-requests")
-      .then(res => res.json())
-      .then(data => {
-
-        const tbody = document.querySelector("#leaveTable tbody");
-        tbody.innerHTML = "";
-
-        if (data.length === 0) {
-          tbody.innerHTML = "<tr><td colspan='5'>No leave requests</td></tr>";
-          return;
-        }
-
-        data.forEach(leave => {
-          tbody.innerHTML += `
-            <tr>
-              <td>${leave.employee_name}</td>
-              <td>${leave.from_date}</td>
-              <td>${leave.to_date}</td>
-              <td>${leave.reason}</td>
-              <td>${leave.status}</td>
-            </tr>
-          `;
-        });
-
-      })
-      .catch(err => {
-        alert("Error loading leave requests");
-      });
-
+  // OPEN
+  calendarBtn.addEventListener("click", async () => {
+    await loadHolidays();
+    generateCalendar();
+    overlay.classList.remove("hidden");
   });
 
-});
+  // CLOSE BUTTON
+  closeCalendar.addEventListener("click", () => {
+    overlay.classList.add("hidden");
+  });
+
+  // CLICK OUTSIDE
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) {
+      overlay.classList.add("hidden");
+    }
+  });
+
+}
+  // ================= LOGOUT =================
 
   window.logout = async function () {
     await fetch("/api/logout", { method: "POST" });
     window.location.href = "/common/common.html";
   };
+
 });

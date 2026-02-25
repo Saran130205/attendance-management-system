@@ -1,151 +1,92 @@
-/* ===== Global ===== */
-body {
+/* ===== RESET ===== */
+* {
+  box-sizing: border-box;
   margin: 0;
+  padding: 0;
   font-family: "Segoe UI", Arial, sans-serif;
-  background: linear-gradient(135deg, #1f3c88, #4a69bd);
-  color: #333;
+}
+
+/* ===== BODY ===== */
+body {
+  background: #98aee6;
   padding: 30px;
 }
 
-/* ===== Main Heading ===== */
+/* ===== HEADER ===== */
 h1 {
   text-align: center;
-  color: white;
   margin-bottom: 30px;
+  color: #2c3e50;
 }
 
-/* ===== Section Card Style ===== */
 h2 {
-  margin-top: 0;
+  margin-bottom: 15px;
+  color: #2c3e50;
 }
 
-form,
-table {
-  width: 100%;
+/* ===== TOP BAR ===== */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
 }
 
-form,
-#userTable {
-  background: white;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  margin-bottom: 30px;
+.top-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
-/* ===== Logout Button ===== */
+.top-right {
+  display: flex;
+  gap: 10px;
+}
+
+#welcomeText {
+  font-weight: 600;
+  font-size: 18px;
+  color: #2c3e50;
+}
+
+/* ===== BUTTONS ===== */
 button {
-  margin-left: 10px;
-  padding: 8px 14px;
-  border: none;
+  padding: 8px 16px;
   border-radius: 6px;
+  border: none;
   cursor: pointer;
   font-weight: 500;
   transition: 0.3s ease;
 }
 
-/* 🔴 Logout Button */
-.logout-btn {
-  background-color: #ff5c5c;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  margin-top: 112px;
-}
-
-
-/* 🔵 Calendar Button */
-.calendar-btn {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  margin-left: 800px; 
-    margin-top: -3px;
-}
-
-
-/* Logout button style */
-button[onclick="logout()"] {
-  background: #ff6b6b;
-  color: white;
-  position: absolute;
-  top: 30px;
-  right: 110px;
-}
-
-button[onclick="logout()"]:hover {
-  background: #e55050;
-}
-
-/* ===== Form Inputs ===== */
-input,
-select {
-  padding: 10px;
-  margin-right: 10px;
-  margin-bottom: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  outline: none;
-  font-size: 14px;
-  transition: 0.3s;
-}
-
-input:focus,
-select:focus {
-  border-color: #4a69bd;
-  box-shadow: 0 0 5px rgba(74, 105, 189, 0.4);
-}
-
-/* ===== Create Button ===== */
-#createForm button {
-  background: #38ada9;
-  color: white;
-}
-
-#createForm button:hover {
-  background: #2e8b8b;
-}
-
-/* ===== Table Styling ===== */
-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-
-thead {
+.primary-btn {
   background: #4a69bd;
   color: white;
 }
 
-th,
-td {
-  padding: 12px;
-  text-align: center;
-  border-bottom: 1px solid #ddd;
+.primary-btn:hover {
+  background: #3b57a0;
 }
 
-tbody tr:hover {
-  background: #f1f3f6;
-}
-
-/* ===== Action Button (Delete) ===== */
-td button {
-  background: #ee5253;
+.logout-btn {
+  background: #e74c3c;
   color: white;
-  padding: 6px 10px;
-  border-radius: 5px;
 }
 
-td button:hover {
+.logout-btn:hover {
   background: #c0392b;
 }
+
+.calendar-btn {
+  background: #27ae60;
+  color: white;
+}
+
+.calendar-btn:hover {
+  background: #1e8449;
+}
+
+/* ===== CALENDAR GRID ===== */
 
 #calendar2026 {
   display: grid;
@@ -158,6 +99,7 @@ td button:hover {
   background: white;
   padding: 15px;
   border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
 }
 
 .month-box h3 {
@@ -173,107 +115,178 @@ td button:hover {
 
 .day-box {
   padding: 8px;
-  margin: 3px;
   border-radius: 6px;
   text-align: center;
   background: #e0e0e0;
-  cursor: pointer;
-}
-
-.sunday {
-  background-color: #f08080;
-  color: white;
-}
-
-.saturday {
-  background-color: #f08080;
-  color: white;
-}
-
-.holiday {
-  background-color: #8e44ad;
-  color: white;
-  font-weight: bold;
-  border: 2px solid gold;
-}
-
-.view-btn {
-  background-color: #28a745;
-  color: white;
-}
-
-#welcomeText {
-  height: 35px;
-  width: 200px;
-  font-size: 22px;
-  font-weight: 600;
-  color: white;
-  margin: 10px 0 20px 5px;
-  display: inline-block;
-  padding: 6px 15px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 25px;
-}
-
-.search {
-  display: flex;
-  margin: 20px 0 15px 0;
-  margin-left: 160px;
-  margin-bottom: -48px;
-
-}
-
-/* Search input */
-#searchInput {
-  width: 280px;
-  padding: 10px 14px;
-  border-radius: 25px;
-  border: none;
-  outline: none;
-  font-size: 14px;
-  background: #ffffff;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-  transition: 0.3s ease;
-}
-
-/* Focus effect */
-#searchInput:focus {
-  box-shadow: 0 0 8px rgba(52, 152, 219, 0.7);
-}
-
-/* Placeholder styling */
-#searchInput::placeholder {
-  color: #888;
   font-size: 13px;
 }
 
-.today {
-  background-color: #f39c12 !important;
-  color: #ffffff !important;
-  font-weight: bold;
-  border: 2px solid #ffffff !important;
-  box-shadow: 0 0 10px rgba(243, 156, 18, 0.8) !important;
-  z-index: 10;
+/* Sunday */
+.day-box.sunday {
+  background: #f8d7da;
+  color: #721c24;
 }
 
+/* Saturday */
+.day-box.saturday {
+  background: #d6e9ff;
+  color: #0c5460;
+}
+
+/* Govt Holiday */
+.day-box.holiday {
+  background: #8e44ad;
+  color: white;
+  font-weight: bold;
+}
+
+/* ===== CARD ===== */
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+  margin-bottom: 30px;
+}
+
+/* ===== FORM ===== */
+input, select {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+input:focus, select:focus {
+  border-color: #4a69bd;
+  outline: none;
+}
+
+/* ===== TABLE ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: #2c3e50;
+  color: white;
+}
+
+th, td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+tbody tr:hover {
+  background: #f2f6ff;
+}
+
+/* ===== SEARCH ===== */
+.search {
+  margin-bottom: 15px;
+}
+
+#searchInput {
+  width: 300px;
+}
+
+/* ===== STATUS BADGES ===== */
+.status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 13px;
+  display: inline-block;
+}
+
+.status.pending {
+  background: #f1c40f;
+  color: #000;
+}
+
+.status.approved {
+  background: #2ecc71;
+  color: white;
+}
+
+.status.rejected {
+  background: #e74c3c;
+  color: white;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.approve-btn {
+  background: #2ecc71;
+  color: white;
+  margin-right: 5px;
+}
+
+.reject-btn {
+  background: #e74c3c;
+  color: white;
+}
+
+/* ===== HIDDEN ===== */
 .hidden {
   display: none;
 }
 
-table {
+/* ===== CALENDAR OVERLAY ===== */
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.calendar-modal {
   background: white;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
 }
 
-th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
-th {
-  background-color: #2c3e50;
+.close-btn {
+  background: #e74c3c;
   color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  background: #c0392b;
+}
+
+/* keep hidden reusable */
+.hidden {
+  display: none;
+}
+
+.today {
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+  border: 2px solid #000;
 }

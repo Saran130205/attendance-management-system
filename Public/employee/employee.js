@@ -161,52 +161,125 @@ document.getElementById("profileForm")
 document.addEventListener("DOMContentLoaded", function () {
 
   const leaveBtn = document.getElementById("leaveBtn");
+  const leaveSection = document.getElementById("leaveSection");
   const leaveForm = document.getElementById("leaveForm");
   const cancelLeave = document.getElementById("cancelLeave");
   const submitLeave = document.getElementById("submitLeave");
 
-  leaveBtn.addEventListener("click", function () {
-    leaveForm.classList.remove("hidden");
-  });
+  // Hide leave section safely
+  if (leaveSection) {
+    leaveSection.classList.add("hidden");
+  }
 
-  cancelLeave.addEventListener("click", function () {
-    leaveForm.classList.add("hidden");
-  });
+  // Toggle Leave Section
+  if (leaveBtn && leaveSection) {
+    leaveBtn.addEventListener("click", async function () {
 
-  submitLeave.addEventListener("click", function () {
+      if (leaveSection.classList.contains("hidden")) {
+        leaveSection.classList.remove("hidden");
+        await loadMyLeaves();
+      } else {
+        leaveSection.classList.add("hidden");
+      }
 
-    const fromDate = document.getElementById("fromDate").value;
-    const toDate = document.getElementById("toDate").value;
-    const reason = document.getElementById("reason").value;
-
-    if (!fromDate || !toDate || !reason) {
-      alert("All fields are required");
-      return;
-    }
-
-    fetch("/api/employee/request-leave", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from_date: fromDate,
-        to_date: toDate,
-        reason: reason
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      alert(data.message);
-      leaveForm.classList.add("hidden");
-      location.reload();
-    })
-    .catch(err => {
-      alert("Error submitting leave");
     });
+  }
 
-  });
+  // Cancel Button
+  if (cancelLeave && leaveForm) {
+    cancelLeave.addEventListener("click", function () {
+      leaveForm.classList.add("hidden");
+    });
+  }
+
+  // Submit Leave
+  if (submitLeave) {
+    submitLeave.addEventListener("click", async function () {
+
+      const fromDate = document.getElementById("fromDate").value;
+      const toDate = document.getElementById("toDate").value;
+      const reason = document.getElementById("reason").value;
+
+      if (!fromDate || !toDate || !reason) {
+        alert("All fields are required");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/employee/request-leave", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from_date: fromDate,
+            to_date: toDate,
+            reason: reason
+          })
+        });
+
+        const data = await res.json();
+
+        alert(data.message);
+
+        document.getElementById("fromDate").value = "";
+        document.getElementById("toDate").value = "";
+        document.getElementById("reason").value = "";
+
+        await loadMyLeaves();
+
+      } catch (err) {
+        alert("Error submitting leave");
+      }
+
+    });
+  }
 
 });
+async function loadMyLeaves() {
 
+  const res = await fetch("/api/employee/my-leaves");
+  const data = await res.json();
+
+  const tbody = document.querySelector("#myLeaveTable tbody");
+
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  if (data.length === 0) {
+    tbody.innerHTML = "<tr><td colspan='4'>No leave history</td></tr>";
+    return;
+  }
+
+  data.forEach(leave => {
+
+    const fromDate = leave.from_date.split("T")[0];
+    const toDate = leave.to_date.split("T")[0];
+
+    let statusColor = "";
+
+    if (leave.status === "Approved") {
+      statusColor = "green";
+    } else if (leave.status === "Rejected") {
+      statusColor = "red";
+    } else {
+      statusColor = "orange";
+    }
+
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${fromDate}</td>
+      <td>${toDate}</td>
+      <td>${leave.reason}</td>
+      <td style="color:${statusColor}; font-weight:bold;">
+        ${leave.status}
+      </td>
+    `;
+
+    tbody.appendChild(row);
+  });
+
+}
 
 async function logout() {
   await fetch("/api/logout", { method: "POST" });
