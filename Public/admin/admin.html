@@ -14,6 +14,7 @@
       <span id="welcomeText"></span>
       <button id="viewLeaveBtn" class="primary-btn">View Leave Requests</button>
       <button id="calendarBtn" class="calendar-btn">View Calendar</button>
+      <div id="liveDateTime" class="live-clock"></div>
     </div>
 
     <div class="top-right">
@@ -63,6 +64,11 @@
     <div class="search">
       <input type="text" id="searchInput" placeholder="Search by Name...">
     </div>
+    <div class="analytics-container">
+  <div class="analytics-card" id="totalCard">Total: 0</div>
+  <div class="analytics-card" id="presentCard">Present: 0</div>
+  <div class="analytics-card" id="absentCard">Absent: 0</div>
+</div>
     <table id="userTable">
       <thead>
         <tr>

@@ -129,7 +129,7 @@ button {
 
 /* Saturday */
 .day-box.saturday {
-  background: #d6e9ff;
+  background: #aec8e6;
   color: #0c5460;
 }
 
@@ -293,8 +293,8 @@ tbody tr:hover {
 }
 
 .today {
-  background-color: #007bff;
-  color: white;
+  background-color: #87edbf;
+  color: rgb(68, 51, 51);
   font-weight: bold;
   border: 2px solid #000;
 }
@@ -345,16 +345,78 @@ tbody tr:hover {
   background-color: #FFC107;
 }
 
-.saturday {
+/* .saturday {
   background-color: #90CAF9;
 }
 
 .sunday {
   background-color: #F44336;
   color: white;
-}
+} */
 
 .absent {
   background-color: #E0E0E0;
   border: 1px solid #ccc;
 }
+
+.analytics-container {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.analytics-card {
+  flex: 1;
+  background: #779bf6;
+  padding: 20px;
+  border-radius: 10px;
+  font-weight: bold;
+  text-align: center;
+  font-size: 18px;
+}
+#absentCard {
+    background-color: #f27b7b; /* Specific background for absent */
+}
+
+#presentCard{
+  background-color: #75f290;
+}
+
+.export-btn {
+  background-color: #1D6F42;   /* Excel green */
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.export-btn:hover {
+  background-color: #155c36;
+  transform: translateY(-1px);
+}
+
+.export-btn:active {
+  transform: translateY(0);
+}
+
+.live-clock {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  margin-top: 5px;
+}
+
+/* .sunday {
+  background-color: #ff4d4d;
+  color: white;
+  font-weight: bold;
+}
+
+.saturday {
+  background-color: #ffa500;
+  color: rgb(149, 69, 69);
+  font-weight: bold;
+} */

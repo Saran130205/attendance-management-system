@@ -1,6 +1,7 @@
 const express = require("express");
 const session = require("express-session");
 const db = require("./config/db");
+const ExcelJS = require("exceljs");
 
 const app = express();
 
@@ -315,7 +316,7 @@ app.get("/api/admin/user-calendar/:id", (req, res) => {
 
   const leaveSql = `
     SELECT from_date, to_date FROM leave_requests
-    WHERE employee_id = ?   -- ✅ FIXED HERE
+    WHERE employee_id = ?   
     AND status = 'Approved'
     AND (
       MONTH(from_date) = ?
@@ -398,6 +399,202 @@ app.get("/api/admin/user-monthly-hours/:id", (req, res) => {
     });
 
   });
+
+});
+
+//===== hr-analytics =====
+
+app.get("/api/admin/hr-analytics", async (req, res) => {
+
+  if (!req.session.user || req.session.user.role !== "admin") {
+    return res.status(403).json({ message: "Admin only" });
+  }
+
+  try {
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    const formattedDate = `${year}-${month}-${day}`;
+
+    console.log("Today:", formattedDate);
+
+    // Total Users
+    const [totalRows] = await db.promise().query(
+      "SELECT COUNT(*) as total FROM users"
+    );
+
+    console.log("Total Rows:", totalRows);
+
+    // Present Today
+    const [presentRows] = await db.promise().query(
+      "SELECT COUNT(DISTINCT user_id) as present FROM attendance WHERE date = ?",
+      [formattedDate]
+    );
+
+    console.log("Present Rows:", presentRows);
+
+    const total = totalRows[0]?.total || 0;
+    const present = presentRows[0]?.present || 0;
+    const absent = total - present;
+
+    res.json({
+      totalEmployees: total,
+      presentToday: present,
+      absentToday: absent
+    });
+
+  } catch (err) {
+    console.error("Analytics Error FULL:", err);
+    res.status(500).json({ message: "Server Error", error: err.message });
+  }
+
+});
+
+//export attendance
+
+// const ExcelJS = require("exceljs");
+
+app.get("/api/admin/export-attendance/:userId", async (req, res) => {
+
+  if (!req.session.user || req.session.user.role !== "admin") {
+    return res.status(403).json({ message: "Admin only" });
+  }
+
+  try {
+
+    const userId = req.params.userId;
+
+    const [userRows] = await db.promise().query(
+      "SELECT name, department, role FROM users WHERE id = ?",
+      [userId]
+    );
+
+    if (userRows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = userRows[0];
+
+
+    const [attendanceRows] = await db.promise().query(
+      `SELECT date, check_in, check_out 
+       FROM attendance 
+       WHERE user_id = ?
+       ORDER BY date ASC`,
+      [userId]
+    );
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Monthly Attendance");
+
+    //  HEADER STYLE 
+
+    sheet.mergeCells("A1:E1");
+    sheet.getCell("A1").value =
+      `${user.name} - ${user.department} - ${user.role}`;
+
+    sheet.getCell("A1").font = { size: 14, bold: true };
+    sheet.getCell("A1").alignment = { horizontal: "center" };
+
+    sheet.addRow([]);
+
+    //  TABLE HEADER 
+
+    const headerRow = sheet.addRow([
+      "Date",
+      "Status",
+      "Check-In",
+      "Check-Out",
+      "Total Hours"
+    ]);
+
+    headerRow.font = { bold: true };
+    headerRow.alignment = { horizontal: "center" };
+
+    headerRow.eachCell(cell => {
+      cell.border = {
+        top: { style: "thin" },
+        bottom: { style: "thin" },
+        left: { style: "thin" },
+        right: { style: "thin" }
+      };
+    });
+
+    //DATA 
+
+    let totalHoursMonth = 0;
+    let presentDays = 0;
+
+    attendanceRows.forEach(row => {
+
+      let totalHours = "-";
+      let status = "Absent";
+
+      if (row.check_in && row.check_out) {
+
+        const checkIn = new Date(`1970-01-01T${row.check_in}`);
+        const checkOut = new Date(`1970-01-01T${row.check_out}`);
+
+        const diffMs = checkOut - checkIn;
+
+        const hours = diffMs / (1000 * 60 * 60);
+        totalHours = hours.toFixed(2);
+
+        totalHoursMonth += hours;
+        presentDays++;
+        status = "Present";
+      }
+
+      sheet.addRow([
+        row.date.toISOString().split("T")[0],
+        status,
+        row.check_in || "-",
+        row.check_out || "-",
+        totalHours
+      ]);
+    });
+
+    //SUMMARY 
+
+    sheet.addRow([]);
+    sheet.addRow(["Working Days (Company)", attendanceRows.length]);
+    sheet.addRow(["Total Present Days", presentDays]);
+    sheet.addRow(["Total Worked Hours", totalHoursMonth.toFixed(2)]);
+
+    
+    const expectedHours = attendanceRows.length * 8.5;
+    sheet.addRow(["Expected Monthly Hours", expectedHours.toFixed(2)]);
+    sheet.addRow([
+      "Difference",
+      (totalHoursMonth - expectedHours).toFixed(2)
+    ]);
+
+
+    sheet.columns.forEach(column => {
+      column.width = 18;
+    });
+
+    // DOWNLOAD 
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${user.name}_attendance.xlsx`
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (err) {
+    console.error("Export Error:", err);
+    res.status(500).json({ message: "Export Failed" });
+  }
 
 });
 // ================= EMPLOYEE ROUTES =================
@@ -573,6 +770,126 @@ app.get("/api/employee/my-leaves", (req, res) => {
     if (err) return res.status(500).json({ message: "Error fetching leaves" });
 
     res.json(results);
+  });
+});
+
+//Auto disable checkin
+app.get("/api/employee/disable-checkin", (req, res) => {
+
+  const userId = req.session.user.id;
+  const today = new Date().toISOString().split("T")[0];
+
+  const sql = `
+    SELECT check_in, check_out
+    FROM attendance
+    WHERE user_id = ? AND date = ?
+  `;
+
+  db.query(sql, [userId, today], (err, results) => {
+
+    if (err) return res.status(500).json({ message: "Server error" });
+
+    if (results.length === 0) {
+      return res.json({
+        checkedIn: false,
+        checkedOut: false
+      });
+    }
+
+    const record = results[0];
+
+    res.json({
+      checkedIn: !!record.check_in,
+      checkedOut: !!record.check_out
+    });
+  });
+});
+
+
+//check-in
+app.post("/api/employee/check-in",(req, res) =>{
+  if (!req.session.user || req.session.user.role !== "employee") {
+    return res.status(403).json({ message: "Employee only" });
+  }
+
+  const userId = req.session.user.id;
+  const today = new Date();
+  const date = today.toISOString.split("T")[0];
+  const time = today.toTimeString.split("T")[0];
+
+  const sql = `
+    INSERT INTO attendance (user_id, date, check_in)
+    VALUES (?, ?, ?)
+  `;
+
+  db.query(sql, [userId, date, time], (err) => {
+    if (err) {
+      console.error("Check-in error:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    res.json({ message: "Checked in successfully" });
+  });
+});
+
+//check-out
+
+app.post("/api/employee/check-out", (req, res) => {
+
+  if (!req.session.user || req.session.user.role !== "employee") {
+    return res.status(403).json({ message: "Employee only" });
+  }
+
+  const userId = req.session.user.id;
+
+  const today = new Date();
+  const date = today.toISOString().split("T")[0];
+  const time = today.toTimeString().split(" ")[0];
+
+  const sql = `
+    UPDATE attendance
+    SET check_out = ?
+    WHERE user_id = ? AND date = ?
+  `;
+
+  db.query(sql, [time, userId, date], (err) => {
+    if (err) {
+      console.error("Check-out error:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+
+    res.json({ message: "Checked out successfully" });
+  });
+});
+
+app.get("/api/employee/today-status", (req, res) => {
+
+  const userId = req.session.user.id;
+  const today = new Date().toISOString().split("T")[0];
+
+  const sql = `
+    SELECT check_in, check_out
+    FROM attendance
+    WHERE user_id = ? AND date = ?
+  `;
+
+  db.query(sql, [userId, today], (err, results) => {
+
+    if (err) return res.status(500).json({ message: "Server error" });
+
+    if (results.length === 0) {
+      return res.json({
+        checkedIn: false,
+        checkedOut: false
+      });
+    }
+
+    const record = results[0];
+
+    res.json({
+      checkedIn: !!record.check_in,
+      checkedOut: !!record.check_out
+    });
   });
 });
 

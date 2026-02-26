@@ -27,6 +27,7 @@ document.getElementById("checkInBtn")
   });
 
   loadAttendance();
+  updateCheckButtons();
 });
 
 
@@ -40,6 +41,8 @@ document.getElementById("checkOutBtn")
   });
 
   loadAttendance();
+  updateCheckButtons();
+
 });
 
 async function loadAttendance() {
@@ -49,7 +52,7 @@ async function loadAttendance() {
   const tbody = document.querySelector("#attendanceTable tbody");
   tbody.innerHTML = "";
 
-  const requiredMinutes = 8.5 * 60; // 8 hours 30 mins = 510 mins
+  const requiredMinutes = 8.5 * 60; 
 
   data.forEach(row => {
 
@@ -233,6 +236,28 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  async function updateCheckButtons() {
+    const res = await fetch("/api/employee/disable-checkin");
+    const data = await res.json();
+
+    const checkInBtn = document.getElementById("checkInBtn");
+    const checkOutBtn = document.getElementById("checkOutBtn");
+
+    if (!checkInBtn || !checkOutBtn) return;
+
+    if(!data.checkedIn) {
+      checkInBtn.disabled = false;
+      checkOutBtn.disabled = true;
+    } else if (data.checkedIn && !data.checkedOut) {
+      checkInBtn.disabled = true;
+      checkOutBtn.disabled = false;
+    }else {
+      checkInBtn.disabled = true;
+      checkOutBtn.disabled = true;
+        }
+  }
+
+  updateCheckButtons();
 });
 async function loadMyLeaves() {
 
