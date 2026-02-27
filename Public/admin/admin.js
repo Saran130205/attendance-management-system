@@ -132,6 +132,42 @@ if (calendarBtn && overlay && closeCalendar && calendar) {
   });
 }
 
+//Edit and Delete Button conff
+
+document.addEventListener("click", function (e) {
+
+  // DELETE BUTTON
+  if (e.target.classList.contains("delete-btn")) {
+    const userId = e.target.getAttribute("data-id");
+
+    showConfirm(
+      "Delete User",
+      "Are you want to delete?",
+      async () => {
+        await fetch(`/api/admin/delete-user/${userId}`, {
+          method: "DELETE"
+        });
+
+        loadUsers(); // refresh table
+      }
+    );
+  }
+
+  // EDIT BUTTON
+  if (e.target.classList.contains("edit-btn")) {
+    const userId = e.target.getAttribute("data-id");
+
+    showConfirm(
+      "Edit User",
+      "Do you want to edit this user?",
+      () => {
+        openEditForm(userId);
+      }
+    );
+  }
+
+});
+
 
   // ================= USERS =================
 
@@ -619,6 +655,38 @@ window.closeHours = function () {
     overlay.classList.add("hidden");
   }
 };
+
+function showConfirm(title, message, onConfirm) {
+  const modal = document.getElementById("confirmModal");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalMessage = document.getElementById("modalMessage");
+  const confirmBtn = document.getElementById("confirmBtn");
+  const cancelBtn = document.getElementById("cancelBtn");
+
+  modalTitle.innerText = title;
+  modalMessage.innerText = message;
+
+  modal.style.display = "flex";
+
+  confirmBtn.onclick = () => {
+    modal.style.display = "none";
+    onConfirm();
+  };
+
+  cancelBtn.onclick = () => {
+    modal.style.display = "none";
+  };
+}
+
+// function logout() {
+//   showConfirm(
+//     "Logout",
+//     "Are you sure you want to logout?",
+//     () => {
+//       window.location.href = "/logout";
+//     }
+//   );
+// }
 
 function nextPage() {
   currentPage ++;
