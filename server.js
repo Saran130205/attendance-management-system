@@ -112,26 +112,32 @@ app.delete("/api/admin/delete-user/:id", (req, res) => {
 });
 
 //Admin Attendance
-app.get("/api/admin/attendance", (req, res) => {
+
+  app.get("/api/admin/attendance", (req, res) => {
   if (!req.session.user || req.session.user.role !== "admin")
     return res.status(403).json({ message: "Admin only" });
+
+  const page = parseInt(req.query.page) || 1;
+  const limit = 10;
+  const offset = (page - 1) * limit;
 
   const query = `
     SELECT 
       a.id,
       u.name,
       u.role,
-      a.date,
+      DATE_FORMAT(a.\`date\`, '%Y-%m-%d') AS date,
       a.check_in,
       a.check_out
     FROM attendance a
     INNER JOIN users u ON a.user_id = u.id
-    ORDER BY a.date DESC
+    ORDER BY a.\`date\` DESC, a.id DESC
+    LIMIT ${offset}, ${limit}
   `;
 
   db.query(query, (err, results) => {
     if (err) {
-      console.error("Attendance Query Error:", err);
+      console.log("DB ERROR:", err);
       return res.status(500).json({ message: "Database error" });
     }
 
@@ -157,7 +163,7 @@ const query = `
 
   db.query(query, (err, results) => {
     if (err) {
-      console.error("Present Users found error",err);
+      // console.error("Present Users found error",err);
       return res.status(500).json({ message: "Database error" });
     }
     res.json(results);
@@ -173,7 +179,7 @@ app.get("/api/admin/holidays", (req, res) => {
   db.query("SELECT * FROM holidays", (err, results) => {
 
     if (err) {
-      console.error("Holiday Fetch Error:", err);
+      // console.error("Holiday Fetch Error:", err);
       return res.status(500).json({ message: "Database error" });
     }
 
@@ -197,7 +203,7 @@ app.get("/api/admin/leave-requests", (req, res) => {
 
   db.query(sql, (err, results) => {
     if (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).json({ message: "Error fetching leave requests" });
     }
 
@@ -220,7 +226,7 @@ app.put("/api/admin/update-leave/:id", (req, res) => {
 
   db.query(sql, [status, leaveId], (err) => {
     if (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).json({ message: "Update failed" });
     }
 
@@ -327,14 +333,14 @@ app.get("/api/admin/user-calendar/:id", (req, res) => {
   db.query(attendanceSql, [userId, month, year], (err, attendance) => {
 
     if (err) {
-      console.log("Attendance SQL Error:", err);
+      // console.log("Attendance SQL Error:", err);
       return res.status(500).json({ attendance: [], leaves: [] });
     }
 
     db.query(leaveSql, [userId, month, month], (err2, leaves) => {
 
       if (err2) {
-        console.log("Leave SQL Error:", err2);
+        // console.log("Leave SQL Error:", err2);
         return res.status(500).json({ attendance: [], leaves: [] });
       }
 
@@ -418,14 +424,14 @@ app.get("/api/admin/hr-analytics", async (req, res) => {
     const day = String(today.getDate()).padStart(2, "0");
     const formattedDate = `${year}-${month}-${day}`;
 
-    console.log("Today:", formattedDate);
+    // console.log("Today:", formattedDate);
 
     // Total Users
     const [totalRows] = await db.promise().query(
       "SELECT COUNT(*) as total FROM users"
     );
 
-    console.log("Total Rows:", totalRows);
+    // console.log("Total Rows:", totalRows);
 
     // Present Today
     const [presentRows] = await db.promise().query(
@@ -433,7 +439,7 @@ app.get("/api/admin/hr-analytics", async (req, res) => {
       [formattedDate]
     );
 
-    console.log("Present Rows:", presentRows);
+    // console.log("Present Rows:", presentRows);
 
     const total = totalRows[0]?.total || 0;
     const present = presentRows[0]?.present || 0;
@@ -446,7 +452,7 @@ app.get("/api/admin/hr-analytics", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("Analytics Error FULL:", err);
+    // console.error("Analytics Error FULL:", err);
     res.status(500).json({ message: "Server Error", error: err.message });
   }
 
@@ -548,7 +554,7 @@ app.get("/api/admin/export-attendance/:userId", async (req, res) => {
       }
 
       sheet.addRow([
-        row.date.toISOString().split("T")[0],
+        row.date.toLocaleDateString(),
         status,
         row.check_in || "-",
         row.check_out || "-",
@@ -592,7 +598,7 @@ app.get("/api/admin/export-attendance/:userId", async (req, res) => {
     res.end();
 
   } catch (err) {
-    console.error("Export Error:", err);
+    // console.error("Export Error:", err);
     res.status(500).json({ message: "Export Failed" });
   }
 
@@ -623,7 +629,7 @@ app.get("/api/employee/attendance", (req, res) => {
 
   db.query(sql, [req.session.user.id], (err, results) => {
     if (err) {
-      console.error("Attendance Error:", err);
+      // console.error("Attendance Error:", err);
       return res.status(500).json({ message: "Database error" });
     }
 
@@ -684,44 +690,65 @@ app.get("/api/employee/profile", (req, res) => {
 //CheckIn
 app.post("/api/employee/checkin", (req, res) => {
 
-  if (!req.session.user)
-    return res.status(401).json({ message: "Unauthorized" });
+  if (!req.session.user || req.session.user.role !== "employee") {
+    return res.status(403).json({ message: "Employee only" });
+  }
 
   const userId = req.session.user.id;
 
-  const today = new Date().toISOString().split("T")[0];
-  const time = new Date().toTimeString().split(" ")[0];
+  const today = new Date()
+  const date = today.toISOString().split("T")[0];
+  const time = today.toTimeString().split(" ")[0];
 
+  const checkSql = `SELECT * FROM attendance WHERE user_id = ? AND date = ?`;
+
+  db.query(checkSql, [userId, date], (err, results) => {
+    if (err) return res.status(500).json({message:"Server Error"});
+
+    if(results.length > 0 ) {
+      return res.json({ message : "Already Checkin"})
+    }
+  
   const sql = `
     INSERT INTO attendance (user_id, date, status, check_in)
-    VALUES (?, ?, 'present', ?)
+    VALUES (?, CURDATE(), 'present', CURTIME())
   `;
 
   db.query(sql, [userId, today, time], (err) => {
     if (err) return res.status(500).json(err);
     res.json({ message: "Checked In Successfully" });
+    });
   });
 });
 
 //Checkout 
 app.post("/api/employee/checkout", (req, res) => {
 
-  if (!req.session.user)
-    return res.status(401).json({ message: "Unauthorized" });
+  if (!req.session.user || req.session.user.role !== "employee") {
+    return res.status(403).json({ message: "Employee only" });
+  }
 
   const userId = req.session.user.id;
-  const today = new Date().toISOString().split("T")[0];
-  const time = new Date().toTimeString().split(" ")[0];
+  const today = new Date();
+  const date = today.toISOString().split("T")[0];
+  const time = today.toTimeString().split(" ")[0];
 
   const sql = `
     UPDATE attendance
     SET check_out = ?
     WHERE user_id = ? AND date = ?
+    AND check_out IS NULL
   `;
 
-  db.query(sql, [time, userId, today], (err) => {
-    if (err) return res.status(500).json(err);
-    res.json({ message: "Checked Out Successfully" });
+  db.query(sql, [time, userId, date], (err, result) => {
+
+    if (err) return res.status(500).json({ message: "Server error" });
+
+    if (result.affectedRows === 0) {
+      return res.json({ message: "Already checked out" });
+    }
+
+    res.json({ message: "Checked out successfully" });
   });
 });
 
@@ -745,7 +772,7 @@ app.post("/api/employee/request-leave", (req, res) => {
 
   db.query(sql, [employee_id, from_date, to_date, reason], (err) => {
     if (err) {
-      console.log(err);
+      // console.log(err);
       return res.status(500).json({ message: "Error submitting leave" });
     }
 
@@ -818,13 +845,13 @@ app.post("/api/employee/check-in",(req, res) =>{
   const time = today.toTimeString.split("T")[0];
 
   const sql = `
-    INSERT INTO attendance (user_id, date, check_in)
-    VALUES (?, ?, ?)
-  `;
+  INSERT INTO attendance (user_id, date, status, check_in)
+  VALUES (?, CURDATE(), 'present', CURTIME())
+`;
 
   db.query(sql, [userId, date, time], (err) => {
     if (err) {
-      console.error("Check-in error:", err);
+      // console.error("Check-in error:", err);
       return res.status(500).json({ message: "Server error" });
     }
 
@@ -844,17 +871,19 @@ app.post("/api/employee/check-out", (req, res) => {
 
   const today = new Date();
   const date = today.toISOString().split("T")[0];
-  const time = today.toTimeString().split(" ")[0];
+  const time = today.toTimeString().split("T")[0];
 
   const sql = `
-    UPDATE attendance
-    SET check_out = ?
-    WHERE user_id = ? AND date = ?
-  `;
+  UPDATE attendance
+  SET check_out = CURTIME()
+  WHERE user_id = ?
+    AND date = CURDATE()
+    AND check_out IS NULL
+`;
 
   db.query(sql, [time, userId, date], (err) => {
     if (err) {
-      console.error("Check-out error:", err);
+      // console.error("Check-out error:", err);
       return res.status(500).json({ message: "Server error" });
     }
 

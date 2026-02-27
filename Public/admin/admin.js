@@ -1,9 +1,63 @@
 console.log("ADMIN JS LOADED");
 
+  let allAttendance = [];
+  let currentPage = 1;
+
+  async function loadAttendance() {
+  const res = await fetch(`/api/admin/attendance?page=${currentPage}`);
+  const data = await res.json();   // ✅ define data properly
+
+  if (!Array.isArray(data)) {
+    console.error("Invalid response:", data);
+    return;
+  }
+
+  allAttendance = data;
+  renderAttendance(allAttendance);
+}
+
+  function renderAttendance(records) {
+
+    const tbody = document.querySelector("#attendanceTable tbody");
+    tbody.innerHTML = "";
+
+    records.forEach(record => {
+
+      const dateOnly = record.date;
+      let totalDuration = "-";
+
+      if (record.check_in && record.check_out) {
+        const checkIn = new Date(`1970-01-01T${record.check_in}`);
+        const checkOut = new Date(`1970-01-01T${record.check_out}`);
+        const diffMs = checkOut - checkIn;
+
+        const hours = Math.floor(diffMs / (1000 * 60 * 60));
+        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+        totalDuration = `${hours}h ${minutes}m ${seconds}s`;
+      }
+
+      const row = document.createElement("tr");
+
+      row.innerHTML = `
+        <td>${record.name}</td>
+        <td>${record.role}</td>
+        <td>${dateOnly}</td>
+        <td>${record.check_in || "-"}</td>
+        <td>${record.check_out || "-"}</td>
+        <td>${totalDuration}</td>
+      `;
+
+      tbody.appendChild(row);
+    });
+  }
+
+
 document.addEventListener("DOMContentLoaded", function () {
 
   let allUsers = [];
-  let allAttendance = [];
+
 
 
   // ================= AUTH =================
@@ -171,49 +225,7 @@ if (calendarBtn && overlay && closeCalendar && calendar) {
 
   // ================= ATTENDANCE =================
 
-  async function loadAttendance() {
-    const res = await fetch("/api/admin/attendance");
-    allAttendance = await res.json();
-    renderAttendance(allAttendance);
-  }
-
-  function renderAttendance(records) {
-
-    const tbody = document.querySelector("#attendanceTable tbody");
-    tbody.innerHTML = "";
-
-    records.forEach(record => {
-
-      const dateOnly = record.date.split("T")[0];
-      let totalDuration = "-";
-
-      if (record.check_in && record.check_out) {
-        const checkIn = new Date(`1970-01-01T${record.check_in}`);
-        const checkOut = new Date(`1970-01-01T${record.check_out}`);
-        const diffMs = checkOut - checkIn;
-
-        const hours = Math.floor(diffMs / (1000 * 60 * 60));
-        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-
-        totalDuration = `${hours}h ${minutes}m ${seconds}s`;
-      }
-
-      const row = document.createElement("tr");
-
-      row.innerHTML = `
-        <td>${record.name}</td>
-        <td>${record.role}</td>
-        <td>${dateOnly}</td>
-        <td>${record.check_in || "-"}</td>
-        <td>${record.check_out || "-"}</td>
-        <td>${totalDuration}</td>
-      `;
-
-      tbody.appendChild(row);
-    });
-  }
-
+  
   document.getElementById("attendanceSearch")
     .addEventListener("input", filterAttendance);
 
@@ -287,7 +299,7 @@ async function loadHolidays() {
     const data = await res.json();
 
     holidays = data.map(h => ({
-      date: new Date(h.holidays_date).toISOString().split("T")[0]
+      date: new Date(h.holidays_date).toLocaleDateString("en-CA")
     }));
 
   } catch (err) {
@@ -360,6 +372,7 @@ function generateCalendar() {
     calendar.appendChild(monthBox);
   }
 }
+
 
 // ================= CREATE / UPDATE USER =================
 
@@ -537,7 +550,7 @@ window.openUserCalendar = async function (userId, userName) {
   const data = await res.json();
 
   const presentDates = data.attendance.map(a =>
-    new Date(a.date).toISOString().split("T")[0]
+    new Date(a.date).toLocaleDateString("en-CA")
   );
 
   const year = new Date().getFullYear();
@@ -547,7 +560,7 @@ window.openUserCalendar = async function (userId, userName) {
   for (let day = 1; day <= daysInMonth; day++) {
 
     const dateObj = new Date(year, month, day);
-    const dateStr = dateObj.toISOString().split("T")[0];
+    const dateStr = dateObj.toLocaleDateString("en-CA")
 
     const box = document.createElement("div");
     box.classList.add("day-box");
@@ -606,3 +619,17 @@ window.closeHours = function () {
     overlay.classList.add("hidden");
   }
 };
+
+function nextPage() {
+  currentPage ++;
+  document.getElementById("pageNumber").innerText = currentPage;
+  loadAttendance();
+}
+
+function prevPage() {
+  if (currentPage > 1) {
+    currentPage --;
+    document.getElementById("pageNumber").innerText = currentPage;
+    loadAttendance();
+  }
+}
