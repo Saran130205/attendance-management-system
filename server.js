@@ -9,41 +9,54 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  session({
-    secret: "secretKey",
-    resave: false,
-    saveUninitialized: false,
-  })
-);
+app.use(session({
+  secret: "yourSecretKey",
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // true only in HTTPS
+}));
 
 // ================= LOGIN =================
 app.post("/api/login", (req, res) => {
-  const { name, password } = req.body;
+  const { name, password, role } = req.body;
 
-  db.query("SELECT * FROM users WHERE name = ?", [name], (err, results) => {
-    if (err) return res.status(500).json({ message: "Database error" });
+  if (!name || !password || !role) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
 
-    if (results.length === 0)
-      return res.status(404).json({ message: "User not found" });
+  db.query(
+    "SELECT id, name, password, role FROM users WHERE name = ? AND role = ?",
+    [name, role],
+    (err, results) => {
 
-    const user = results[0];
+      if (err) {
+        console.error("DB Error:", err);
+        return res.status(500).json({ message: "Internal server error" });
+      }
 
-    if (user.password !== password)
-      return res.status(401).json({ message: "Wrong password" });
+      if (results.length === 0) {
+        return res.status(404).json({ message: "User not found for selected role" });
+      }
 
-    req.session.user = user;
+      const user = results[0];
 
-    res.json({ role: user.role });
-  });
-});
+      if (user.password !== password) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
 
-// ================= SESSION CHECK =================
-app.get("/api/me", (req, res) => {
-  if (!req.session.user)
-    return res.status(401).json({ message: "Not logged in" });
+      // Save session
+      req.session.user = {
+        id: user.id,
+        name: user.name,
+        role: user.role
+      };
 
-  res.json(req.session.user);
+      res.json({
+        message: "Login successful",
+        role: user.role
+      });
+    }
+  );
 });
 
 // ================= ADMIN ROUTES =================
