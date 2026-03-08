@@ -81,20 +81,34 @@ app.post("/api/admin/create-user", (req, res) => {
 
 // Update user
 app.put("/api/admin/update-user/:id", (req, res) => {
+
   if (!req.session.user || req.session.user.role !== "admin")
     return res.status(403).json({ message: "Admin only" });
+  console.log("Update Body:", req.body);
 
   const { id } = req.params;
-  const { name, role, department } = req.body;
+  const { name, role, department, password } = req.body;
 
-  db.query(
-    "UPDATE users SET name = ?, role = ?, department = ? WHERE id = ?",
-    [name, role, department, id],
-    (err) => {
-      if (err) return res.status(500).json({ message: "Database error" });
-      res.json({ message: "User updated successfully" });
-    }
-  );
+  let sql = `
+    UPDATE users
+    SET name = ?, role = ?, department = ?
+  `;
+
+  let params = [name, role, department];
+
+  if (password && password.trim() !== "") {
+    sql += `, password = ?`;
+    params.push(password);
+  }
+
+  sql += ` WHERE id = ?`;
+  params.push(id);
+
+  db.query(sql, params, (err) => {
+    if (err) return res.status(500).json({ message: "Database error" });
+
+    res.json({ message: "User updated successfully" });
+  });
 });
 
 // Delete user

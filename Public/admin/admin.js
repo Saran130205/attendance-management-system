@@ -235,12 +235,13 @@ if (calendarBtn && overlay && closeCalendar && calendar) {
   }
 
   async function loadHRAnalytics() {
-  console.log("Analytics function called");
+  // console.log("Analytics function called");
+
 
   const res = await fetch("/api/admin/hr-analytics");
   const data = await res.json();
 
-  console.log("Analytics data:", data);
+  // console.log("Analytics data:", data);
 
   document.getElementById("totalCard").innerText =
     `Total: ${data.totalEmployees}`;
@@ -379,10 +380,22 @@ document.getElementById("createForm")
 
       if (editId) {
 
+        const bodyData = {
+          name,
+          role,
+          department
+        };
+
+        // Only send password if filled
+        if (password && password.trim() !== "") {
+          bodyData.password = password;
+        }
+
         await fetch(`/api/admin/update-user/${editId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, role, department })
+          credentials: "same-origin",
+          body: JSON.stringify(bodyData)
         });
 
         delete e.target.dataset.editId;
@@ -392,6 +405,7 @@ document.getElementById("createForm")
         await fetch("/api/admin/create-user", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
           body: JSON.stringify({ name, password, role, department })
         });
 
@@ -399,7 +413,7 @@ document.getElementById("createForm")
 
       e.target.reset();
       loadUsers();
-      loadHRAnalytics();   // refresh dashboard numbers
+      loadHRAnalytics();
 
     } catch (err) {
       console.error("Create/Update Error:", err);
