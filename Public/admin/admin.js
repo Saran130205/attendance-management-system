@@ -464,7 +464,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    data.attendance.forEach((leave) => {
+    data.forEach((leave) => {
       const fromDate = leave.from_date.split("T")[0];
       const toDate = leave.to_date.split("T")[0];
 
@@ -540,11 +540,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // loadUsers();
-    z;
+    // z;
     loadHRAnalytics();
   }, 5000);
 
-  // ===========Pagination
 
   // ================= LOGOUT =================
 

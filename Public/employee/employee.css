@@ -180,3 +180,69 @@ button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.leave-balance{
+  background:#fff;
+  padding:6px 14px;
+  border-radius:8px;
+  font-weight:600;
+  margin-right:15px;
+  display:inline-block;
+}
+
+.leave-balance span{
+  color:#e63946;
+}
+
+.leave-day{
+  background-color:#ff4d4d;
+  color:white;
+  border-radius:6px;
+}
+
+.calendar-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.5);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.hidden{
+  display:none;
+}
+
+.calendar-modal{
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  width:600px;
+}
+
+.calendar-header{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:10px;
+}
+
+#employeeCalendar{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:8px;
+}
+
+.day-box{
+  background:#f3f3f3;
+  padding:10px;
+  text-align:center;
+  border-radius:6px;
+}
+
+.leave-day{
+  background:#ff4d4d;
+  color:white;
+}

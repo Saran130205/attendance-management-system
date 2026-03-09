@@ -929,7 +929,9 @@ app.post("/api/employee/check-out", (req, res) => {
 
 //todays Status
 app.get("/api/employee/today-status", (req, res) => {
-
+  if (!req.session.user || req.session.user.role !== "employee") {
+    return res.status(403).json({ message: "Employee only" });
+  }
   const userId = req.session.user.id;
   const today = new Date().toISOString().split("T")[0];
 
@@ -956,6 +958,55 @@ app.get("/api/employee/today-status", (req, res) => {
       checkedOut: !!record.check_out,
     });
   });
+});
+
+// Leave Count
+app.get("/api/employee/leave-count", (req,res)=>{
+
+  if (!req.session.user || req.session.user.role !== "employee") {
+    return res.status(403).json({ message: "Employee only" });
+  }
+
+  const sql = `
+    SELECT COUNT(*) AS usedLeaves
+    FROM leave_requests
+    WHERE employee_id=? AND status='Approved'
+  `;
+
+  db.query(sql,[req.session.user.id],(err,result)=>{
+
+    if(err) return res.status(500).json(err);
+
+    res.json(result[0]);
+
+  });
+
+});
+//Load Calender
+app.get("/api/employee/leave-calendar", (req, res) => {
+
+  if (!req.session.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const sql = `
+    SELECT from_date, to_date
+    FROM leave_requests
+    WHERE employee_id = ?
+    AND status = 'Approved'
+  `;
+
+  db.query(sql, [req.session.user.id], (err, results) => {
+
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    res.json(results);
+
+  });
+
 });
 
 // ================= LOGOUT =================

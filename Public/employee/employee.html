@@ -9,15 +9,29 @@
   <h1>Employee Dashboard</h1>
 
   <!-- ===== TOP BAR ===== -->
-  <div class="top-bar">
-    <div class="left">
-      <span id="welcomeText"></span>
-    </div>
-    <div class="right">
-      <button onclick="logout()" class="logout-btn">Logout</button>
-    </div>
+<div class="top-bar">
+
+  <div class="left">
+    <span id="welcomeText"></span>
   </div>
 
+  <div class="leave-balance">
+    Leave Used: <span id="leaveUsed">0</span> / 16
+  </div>
+
+  <div class="right">
+
+    <button onclick="openEmployeeCalendar()" class="calendar-btn">
+      View Calendar
+    </button>
+
+    <button onclick="logout()" class="logout-btn">
+      Logout
+    </button>
+
+  </div>
+
+</div>
   <!-- ===== LEAVE SECTION ===== -->
   <div class="card">
     <button id="leaveBtn" class="primary-btn">Request Leave</button>
