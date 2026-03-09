@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Admin Dashboard</title>
   <link rel="stylesheet" href="admin.css">
 </head>
+
 <body>
 
   <h1>Admin Dashboard</h1>
@@ -65,10 +67,10 @@
       <input type="text" id="searchInput" placeholder="Search by Name...">
     </div>
     <div class="analytics-container">
-  <div class="analytics-card" id="totalCard">Total: 0</div>
-  <div class="analytics-card" id="presentCard">Present: 0</div>
-  <div class="analytics-card" id="absentCard">Absent: 0</div>
-</div>
+      <div class="analytics-card" id="totalCard">Total: 0</div>
+      <div class="analytics-card" id="presentCard">Present: 0</div>
+      <div class="analytics-card" id="absentCard">Absent: 0</div>
+    </div>
     <table id="userTable">
       <thead>
         <tr>
@@ -78,11 +80,12 @@
           <th>Department</th>
           <th>Attendance</th>
           <th>Action</th>
-          
+
         </tr>
       </thead>
       <tbody></tbody>
     </table>
+    <div id="pagination" style="margin-top:15px;"></div>
   </div>
 
   <!-- ===== ATTENDANCE ===== -->
@@ -90,21 +93,22 @@
     <h2>Attendance Details</h2>
     <input type="text" id="attendanceSearch" placeholder="Search by Name..." />
 
-<select id="monthFilter">
-  <option value="">All Months</option>
-  <option value="01">January</option>
-  <option value="02">February</option>
-  <option value="03">March</option>
-  <option value="04">April</option>
-  <option value="05">May</option>
-  <option value="06">June</option>
-  <option value="07">July</option>
-  <option value="08">August</option>
-  <option value="09">September</option>
-  <option value="10">October</option>
-  <option value="11">November</option>
-  <option value="12">December</option>
-</select>
+    <select id="monthFilter">
+      <option value="">All Months</option>
+      <option value="01">January</option>
+      <option value="02">February</option>
+      <option value="03">March</option>
+      <option value="04">April</option>
+      <option value="05">May</option>
+      <option value="06">June</option>
+      <option value="07">July</option>
+      <option value="08">August</option>
+      <option value="09">September</option>
+      <option value="10">October</option>
+      <option value="11">November</option>
+      <option value="12">December</option>
+    </select>
+    <input type="date" id="dateFilter">
     <table id="attendanceTable">
       <thead>
         <tr>
@@ -122,46 +126,74 @@
 
   <!-- ===== CALENDAR ===== -->
 
-<div id="calendarOverlay" class="overlay hidden">
-  <div class="calendar-modal">
+  <div id="calendarOverlay" class="overlay hidden">
+    <div class="calendar-modal">
 
-    <div class="calendar-header">
-      <h2>Year Calendar</h2>
-      <button id="closeCalendar" class="close-btn">✖</button>
+      <div class="calendar-header">
+        <h2>Year Calendar</h2>
+        <button id="closeCalendar" class="close-btn">✖</button>
+      </div>
+
+      <div id="calendar2026"></div>
+
+    </div>
+  </div>
+
+  <!-- Employee Calendar Modal -->
+  <div id="userCalendarOverlay" class="calendar-overlay hidden">
+    <div class="calendar-modal">
+
+      <div class="calendar-header">
+        <h3 id="calendarUserName">Employee Calendar</h3>
+        <button onclick="closeUserCalendar()">X</button>
+      </div>
+
+      <div id="userCalendar" class="calendar-grid"></div>
+
+    </div>
+  </div>
+  <!-- hours calculation -->
+  <div id="hoursOverlay" class="calendar-overlay hidden">
+    <div class="calendar-modal">
+
+      <div class="calendar-header">
+        <h3 id="hoursUserName">Monthly Work Summary</h3>
+        <button onclick="closeHours()">X</button>
+      </div>
+
+      <div id="hoursContent"></div>
+
+    </div>
+  </div>
+  <div id="editModal" class="modal hidden">
+
+    <div class="modal-content">
+
+      <h3>Edit User</h3>
+
+      <input type="hidden" id="editUserId">
+
+      <input type="text" id="editName" placeholder="Name">
+
+      <select id="editRole">
+        <option value="admin">Admin</option>
+        <option value="employee">Employee</option>
+      </select>
+
+      <input type="text" id="editDepartment" placeholder="Department">
+
+      <input type="password" id="editPassword" placeholder="New Password (optional)">
+
+      <div class="modal-buttons">
+        <button onclick="updateUser()">Update</button>
+        <button onclick="closeModal()">Cancel</button>
+      </div>
+
     </div>
 
-    <div id="calendar2026"></div>
-
   </div>
-</div>
-
-<!-- Employee Calendar Modal -->
-<div id="userCalendarOverlay" class="calendar-overlay hidden">
-  <div class="calendar-modal">
-
-    <div class="calendar-header">
-      <h3 id="calendarUserName">Employee Calendar</h3>
-      <button onclick="closeUserCalendar()">X</button>
-    </div>
-
-    <div id="userCalendar" class="calendar-grid"></div>
-
-  </div>
-</div>
-<!-- hours calculation -->
-<div id="hoursOverlay" class="calendar-overlay hidden">
-  <div class="calendar-modal">
-
-    <div class="calendar-header">
-      <h3 id="hoursUserName">Monthly Work Summary</h3>
-      <button onclick="closeHours()">X</button>
-    </div>
-
-    <div id="hoursContent"></div>
-
-  </div>
-</div>
 
 </body>
 <script src="admin.js" defer></script>
+
 </html>

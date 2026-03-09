@@ -2,6 +2,7 @@ const express = require("express");
 const session = require("express-session");
 const db = require("./config/db");
 const ExcelJS = require("exceljs");
+// const { useId } = require("react");
 
 const app = express();
 
@@ -14,7 +15,7 @@ app.use(
     secret: "secretKey",
     resave: false,
     saveUninitialized: false,
-  })
+  }),
 );
 
 // ================= LOGIN =================
@@ -53,13 +54,10 @@ app.get("/api/admin/users", (req, res) => {
   if (!req.session.user || req.session.user.role !== "admin")
     return res.status(403).json({ message: "Admin only" });
 
-  db.query(
-    "SELECT id, name, role, department FROM users",
-    (err, results) => {
-      if (err) return res.status(500).json({ message: "Database error" });
-      res.json(results);
-    }
-  );
+  db.query("SELECT id, name, role, department FROM users", (err, results) => {
+    if (err) return res.status(500).json({ message: "Database error" });
+    res.json(results);
+  });
 });
 
 // Create user
@@ -75,13 +73,12 @@ app.post("/api/admin/create-user", (req, res) => {
     (err) => {
       if (err) return res.status(500).json({ message: "Database error" });
       res.json({ message: "User created successfully" });
-    }
+    },
   );
 });
 
 // Update user
 app.put("/api/admin/update-user/:id", (req, res) => {
-
   if (!req.session.user || req.session.user.role !== "admin")
     return res.status(403).json({ message: "Admin only" });
   console.log("Update Body:", req.body);
@@ -154,10 +151,10 @@ app.get("/api/admin/attendance", (req, res) => {
 });
 
 //present Employees
-app.get("/api/admin/present-users",(req, res) =>{
+app.get("/api/admin/present-users", (req, res) => {
   if (!req.session.user || req.session.user.role !== "admin")
     return res.status(403).json({ message: "Admin only" });
-const query = `
+  const query = `
     SELECT 
       u.name,
       u.role,
@@ -171,7 +168,7 @@ const query = `
 
   db.query(query, (err, results) => {
     if (err) {
-      console.error("Present Users found error",err);
+      console.error("Present Users found error", err);
       return res.status(500).json({ message: "Database error" });
     }
     res.json(results);
@@ -180,12 +177,10 @@ const query = `
 
 // ===== Govt-Holidays =====
 app.get("/api/admin/holidays", (req, res) => {
-
   if (!req.session.user || req.session.user.role !== "admin")
     return res.status(403).json({ message: "Admin only" });
 
   db.query("SELECT * FROM holidays", (err, results) => {
-
     if (err) {
       console.error("Holiday Fetch Error:", err);
       return res.status(500).json({ message: "Database error" });
@@ -197,7 +192,6 @@ app.get("/api/admin/holidays", (req, res) => {
 
 // Admin - Get All Leave Requests
 app.get("/api/admin/leave-requests", (req, res) => {
-
   if (!req.session.user || req.session.user.role !== "admin") {
     return res.status(403).json({ message: "Admin only" });
   }
@@ -217,7 +211,6 @@ app.get("/api/admin/leave-requests", (req, res) => {
 
     res.json(results);
   });
-
 });
 
 //leave app/rej
@@ -270,7 +263,7 @@ app.get("/api/admin/status/:id", (req, res) => {
 
 //user attendance summary
 
-app.get("/api/admin/user-attendance-summary/:id", (req, res)=>{
+app.get("/api/admin/user-attendance-summary/:id", (req, res) => {
   if (!req.session.user || req.session.user.role !== "admin") {
     return res.status(403).json({ message: "Admin only" });
   }
@@ -307,7 +300,7 @@ app.get("/api/admin/user-attendance-summary/:id", (req, res)=>{
 
     res.json({
       presentDays,
-      workingDays
+      workingDays,
     });
   });
 });
@@ -315,7 +308,6 @@ app.get("/api/admin/user-attendance-summary/:id", (req, res)=>{
 //User-calendar
 
 app.get("/api/admin/user-calendar/:id", (req, res) => {
-
   const userId = req.params.id;
 
   const month = new Date().getMonth() + 1;
@@ -339,14 +331,12 @@ app.get("/api/admin/user-calendar/:id", (req, res) => {
   `;
 
   db.query(attendanceSql, [userId, month, year], (err, attendance) => {
-
     if (err) {
       console.log("Attendance SQL Error:", err);
       return res.status(500).json({ attendance: [], leaves: [] });
     }
 
     db.query(leaveSql, [userId, month, month], (err2, leaves) => {
-
       if (err2) {
         console.log("Leave SQL Error:", err2);
         return res.status(500).json({ attendance: [], leaves: [] });
@@ -354,18 +344,14 @@ app.get("/api/admin/user-calendar/:id", (req, res) => {
 
       res.json({
         attendance: attendance || [],
-        leaves: leaves || []
+        leaves: leaves || [],
       });
-
     });
-
   });
-
 });
 
 //User-monthly-hours
 app.get("/api/admin/user-monthly-hours/:id", (req, res) => {
-
   const userId = req.params.id;
 
   const month = new Date().getMonth() + 1;
@@ -382,12 +368,11 @@ app.get("/api/admin/user-monthly-hours/:id", (req, res) => {
   `;
 
   db.query(sql, [userId, month, year], (err, records) => {
-
     if (err) return res.status(500).json({ error: err });
 
     let totalSeconds = 0;
 
-    records.forEach(r => {
+    records.forEach((r) => {
       const checkIn = new Date(`1970-01-01T${r.check_in}`);
       const checkOut = new Date(`1970-01-01T${r.check_out}`);
       totalSeconds += (checkOut - checkIn) / 1000;
@@ -409,23 +394,19 @@ app.get("/api/admin/user-monthly-hours/:id", (req, res) => {
     res.json({
       workedHours: workedHours.toFixed(2),
       standardHours: standardHours.toFixed(2),
-      difference: (workedHours - standardHours).toFixed(2)
+      difference: (workedHours - standardHours).toFixed(2),
     });
-
   });
-
 });
 
 //===== hr-analytics =====
 
 app.get("/api/admin/hr-analytics", async (req, res) => {
-
   if (!req.session.user || req.session.user.role !== "admin") {
     return res.status(403).json({ message: "Admin only" });
   }
 
   try {
-
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, "0");
@@ -435,17 +416,19 @@ app.get("/api/admin/hr-analytics", async (req, res) => {
     console.log("Today:", formattedDate);
 
     // Total Users
-    const [totalRows] = await db.promise().query(
-      "SELECT COUNT(*) as total FROM users"
-    );
+    const [totalRows] = await db
+      .promise()
+      .query("SELECT COUNT(*) as total FROM users");
 
     console.log("Total Rows:", totalRows);
 
     // Present Today
-    const [presentRows] = await db.promise().query(
-      "SELECT COUNT(DISTINCT user_id) as present FROM attendance WHERE date = ?",
-      [formattedDate]
-    );
+    const [presentRows] = await db
+      .promise()
+      .query(
+        "SELECT COUNT(DISTINCT user_id) as present FROM attendance WHERE date = ?",
+        [formattedDate],
+      );
 
     console.log("Present Rows:", presentRows);
 
@@ -456,14 +439,12 @@ app.get("/api/admin/hr-analytics", async (req, res) => {
     res.json({
       totalEmployees: total,
       presentToday: present,
-      absentToday: absent
+      absentToday: absent,
     });
-
   } catch (err) {
     console.error("Analytics Error FULL:", err);
     res.status(500).json({ message: "Server Error", error: err.message });
   }
-
 });
 
 //export attendance
@@ -471,19 +452,16 @@ app.get("/api/admin/hr-analytics", async (req, res) => {
 // const ExcelJS = require("exceljs");
 
 app.get("/api/admin/export-attendance/:userId", async (req, res) => {
-
   if (!req.session.user || req.session.user.role !== "admin") {
     return res.status(403).json({ message: "Admin only" });
   }
 
   try {
-
     const userId = req.params.userId;
 
-    const [userRows] = await db.promise().query(
-      "SELECT name, department, role FROM users WHERE id = ?",
-      [userId]
-    );
+    const [userRows] = await db
+      .promise()
+      .query("SELECT name, department, role FROM users WHERE id = ?", [userId]);
 
     if (userRows.length === 0) {
       return res.status(404).json({ message: "User not found" });
@@ -491,19 +469,18 @@ app.get("/api/admin/export-attendance/:userId", async (req, res) => {
 
     const user = userRows[0];
 
-
     const [attendanceRows] = await db.promise().query(
       `SELECT date, check_in, check_out 
        FROM attendance 
        WHERE user_id = ?
        ORDER BY date ASC`,
-      [userId]
+      [userId],
     );
 
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Monthly Attendance");
 
-    //  HEADER STYLE 
+    //  HEADER STYLE
 
     sheet.mergeCells("A1:E1");
     sheet.getCell("A1").value =
@@ -514,40 +491,38 @@ app.get("/api/admin/export-attendance/:userId", async (req, res) => {
 
     sheet.addRow([]);
 
-    //  TABLE HEADER 
+    //  TABLE HEADER
 
     const headerRow = sheet.addRow([
       "Date",
       "Status",
       "Check-In",
       "Check-Out",
-      "Total Hours"
+      "Total Hours",
     ]);
 
     headerRow.font = { bold: true };
     headerRow.alignment = { horizontal: "center" };
 
-    headerRow.eachCell(cell => {
+    headerRow.eachCell((cell) => {
       cell.border = {
         top: { style: "thin" },
         bottom: { style: "thin" },
         left: { style: "thin" },
-        right: { style: "thin" }
+        right: { style: "thin" },
       };
     });
 
-    //DATA 
+    //DATA
 
     let totalHoursMonth = 0;
     let presentDays = 0;
 
-    attendanceRows.forEach(row => {
-
+    attendanceRows.forEach((row) => {
       let totalHours = "-";
       let status = "Absent";
 
       if (row.check_in && row.check_out) {
-
         const checkIn = new Date(`1970-01-01T${row.check_in}`);
         const checkOut = new Date(`1970-01-01T${row.check_out}`);
 
@@ -566,50 +541,43 @@ app.get("/api/admin/export-attendance/:userId", async (req, res) => {
         status,
         row.check_in || "-",
         row.check_out || "-",
-        totalHours
+        totalHours,
       ]);
     });
 
-    //SUMMARY 
+    //SUMMARY
 
     sheet.addRow([]);
     sheet.addRow(["Working Days (Company)", attendanceRows.length]);
     sheet.addRow(["Total Present Days", presentDays]);
     sheet.addRow(["Total Worked Hours", totalHoursMonth.toFixed(2)]);
 
-    
     const expectedHours = attendanceRows.length * 8.5;
     sheet.addRow(["Expected Monthly Hours", expectedHours.toFixed(2)]);
-    sheet.addRow([
-      "Difference",
-      (totalHoursMonth - expectedHours).toFixed(2)
-    ]);
+    sheet.addRow(["Difference", (totalHoursMonth - expectedHours).toFixed(2)]);
 
-
-    sheet.columns.forEach(column => {
+    sheet.columns.forEach((column) => {
       column.width = 18;
     });
 
-    // DOWNLOAD 
+    // DOWNLOAD
 
     res.setHeader(
       "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     );
 
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=${user.name}_attendance.xlsx`
+      `attachment; filename=${user.name}_attendance.xlsx`,
     );
 
     await workbook.xlsx.write(res);
     res.end();
-
   } catch (err) {
     console.error("Export Error:", err);
     res.status(500).json({ message: "Export Failed" });
   }
-
 });
 // ================= EMPLOYEE ROUTES =================
 
@@ -621,14 +589,16 @@ app.get("/api/employee/attendance", (req, res) => {
 
   const sql = `
     SELECT 
-      date,
+      DATE_FORMAT(date, '%Y-%m-%d') AS date,
       status,
-      check_in,
-      check_out,
+      TIME_FORMAT(check_in, '%H:%i:%s') AS check_in,
+      TIME_FORMAT(check_out, '%H:%i:%s') AS check_out,
       CASE 
         WHEN check_in IS NOT NULL AND check_out IS NOT NULL
-        THEN TIMESTAMPDIFF(MINUTE, check_in, check_out)
-        ELSE NULL
+        THEN TIMESTAMPDIFF(MINUTE,
+              CONCAT(date,' ',check_in),
+              CONCAT(date,' ',check_out))
+        ELSE 0
       END AS worked_minutes
     FROM attendance
     WHERE user_id = ?
@@ -636,12 +606,17 @@ app.get("/api/employee/attendance", (req, res) => {
   `;
 
   db.query(sql, [req.session.user.id], (err, results) => {
+
     if (err) {
       console.error("Attendance Error:", err);
       return res.status(500).json({ message: "Database error" });
     }
 
-    res.json(results);
+    res.json({
+      success: true,
+      attendance: results
+    });
+
   });
 
 });
@@ -654,27 +629,66 @@ app.put("/api/employee/profile", (req, res) => {
 
   const { gender, dob, age, contact, password } = req.body;
 
-  let sql = `
-    UPDATE users
-    SET gender = ?, dob = ?, age = ?, contact = ?
-  `;
+  let fields = [];
+  let values = [];
 
-  let params = [gender, dob, age, contact];
-
-  if (password && password.trim() !== "") {
-    sql += `, password = ?`;
-    params.push(password);
+  if (gender) {
+    fields.push("gender=?");
+    values.push(gender);
   }
 
-  sql += ` WHERE id = ?`;
-  params.push(req.session.user.id);
+  if (dob) {
+    fields.push("dob=?");
+    values.push(dob);
+  }
 
-  db.query(sql, params, (err) => {
-    if (err) return res.status(500).json(err);
-    res.json({ message: "Profile Updated Successfully" });
+  if (age) {
+    fields.push("age=?");
+    values.push(age);
+  }
+
+  if (contact) {
+    fields.push("contact=?");
+    values.push(contact);
+  }
+
+  if (password) {
+    fields.push("password=?");
+    values.push(password);
+  }
+
+  if (fields.length === 0) {
+    return res.json({ message: "Nothing to update" });
+  }
+
+  const sql = `
+    UPDATE users
+    SET ${fields.join(", ")}
+    WHERE id=?
+  `;
+
+  values.push(req.session.user.id);
+
+  db.query(sql, values, (err, result) => {
+
+    if (err) {
+      console.error("Profile update error:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    // Logout if password changed
+    if (password) {
+      req.session.destroy(() => {
+        return res.json({ logout: true });
+      });
+    } else {
+      res.json({ message: "Profile updated successfully" });
+    }
+
   });
 
 });
+
 //get Profile
 app.get("/api/employee/profile", (req, res) => {
 
@@ -689,7 +703,16 @@ app.get("/api/employee/profile", (req, res) => {
   `;
 
   db.query(sql, [req.session.user.id], (err, result) => {
-    if (err) return res.status(500).json(err);
+
+    if (err) {
+      console.error("PROFILE FETCH ERROR:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     res.json(result[0]);
   });
 
@@ -697,7 +720,6 @@ app.get("/api/employee/profile", (req, res) => {
 
 //CheckIn
 app.post("/api/employee/checkin", (req, res) => {
-
   if (!req.session.user)
     return res.status(401).json({ message: "Unauthorized" });
 
@@ -717,9 +739,8 @@ app.post("/api/employee/checkin", (req, res) => {
   });
 });
 
-//Checkout 
+//Checkout
 app.post("/api/employee/checkout", (req, res) => {
-
   if (!req.session.user)
     return res.status(401).json({ message: "Unauthorized" });
 
@@ -739,7 +760,7 @@ app.post("/api/employee/checkout", (req, res) => {
   });
 });
 
-//LEAVE REQUEST 
+//LEAVE REQUEST
 app.post("/api/employee/request-leave", (req, res) => {
   if (!req.session.user || req.session.user.role !== "employee") {
     return res.status(403).json({ message: "Employee only" });
@@ -789,7 +810,6 @@ app.get("/api/employee/my-leaves", (req, res) => {
 
 //Auto disable checkin
 app.get("/api/employee/disable-checkin", (req, res) => {
-
   const userId = req.session.user.id;
   const today = new Date().toISOString().split("T")[0];
 
@@ -800,13 +820,12 @@ app.get("/api/employee/disable-checkin", (req, res) => {
   `;
 
   db.query(sql, [userId, today], (err, results) => {
-
     if (err) return res.status(500).json({ message: "Server error" });
 
     if (results.length === 0) {
       return res.json({
         checkedIn: false,
-        checkedOut: false
+        checkedOut: false,
       });
     }
 
@@ -814,42 +833,13 @@ app.get("/api/employee/disable-checkin", (req, res) => {
 
     res.json({
       checkedIn: !!record.check_in,
-      checkedOut: !!record.check_out
+      checkedOut: !!record.check_out,
     });
   });
 });
 
-
 //check-in
-app.post("/api/employee/check-in",(req, res) =>{
-  if (!req.session.user || req.session.user.role !== "employee") {
-    return res.status(403).json({ message: "Employee only" });
-  }
-
-  const userId = req.session.user.id;
-  const today = new Date();
-  const date = today.toISOString.split("T")[0];
-  const time = today.toTimeString.split("T")[0];
-
-  const sql = `
-    INSERT INTO attendance (user_id, date, check_in)
-    VALUES (?, ?, ?)
-  `;
-
-  db.query(sql, [userId, date, time], (err) => {
-    if (err) {
-      console.error("Check-in error:", err);
-      return res.status(500).json({ message: "Server error" });
-    }
-
-    res.json({ message: "Checked in successfully" });
-  });
-});
-
-//check-out
-
-app.post("/api/employee/check-out", (req, res) => {
-
+app.post("/api/employee/check-in", (req, res) => {
   if (!req.session.user || req.session.user.role !== "employee") {
     return res.status(403).json({ message: "Employee only" });
   }
@@ -860,22 +850,84 @@ app.post("/api/employee/check-out", (req, res) => {
   const date = today.toISOString().split("T")[0];
   const time = today.toTimeString().split(" ")[0];
 
-  const sql = `
-    UPDATE attendance
-    SET check_out = ?
-    WHERE user_id = ? AND date = ?
-  `;
+  db.query(
+    "SELECT * FROM attendance WHERE user_id = ? AND date = ?",
+    [userId, date],
+    (err, rows) => {
+      if (err) return res.status(500).json(err);
 
-  db.query(sql, [time, userId, date], (err) => {
-    if (err) {
-      console.error("Check-out error:", err);
-      return res.status(500).json({ message: "Server error" });
-    }
+      if (rows.length > 0) {
+        return res.json({
+          message: "You have already checked in today",
+        });
+      }
 
-    res.json({ message: "Checked out successfully" });
-  });
+      const sql = `
+        INSERT INTO attendance (user_id, date, check_in)
+        VALUES (?, ?, ?)
+      `;
+
+      db.query(sql, [userId, date, time], (err) => {
+        if (err) {
+          console.error("Check-in error:", err);
+          return res.status(500).json({ message: "Server error" });
+        }
+
+        res.json({ message: "Checked in successfully" });
+      });
+    },
+  );
+});
+//check-out
+
+app.post("/api/employee/check-out", (req, res) => {
+  if (!req.session.user || req.session.user.role !== "employee") {
+    return res.status(403).json({ message: "Employee only" });
+  }
+
+  const userId = req.session.user.id;
+
+  const today = new Date();
+  const date = today.toISOString().split("T")[0];
+  const time = today.toTimeString().split(" ")[0];
+
+  db.query(
+    "SELECT * FROM attendance WHERE user_id = ? AND date = ?",
+    [userId, date],
+    (err, rows) => {
+      if (err) return res.status(500).json(err);
+
+      if (rows.length === 0) {
+        return res.json({
+          message: "Check-in first",
+        });
+      }
+
+      if (rows[0].check_out) {
+        return res.json({
+          message: "Already checked out",
+        });
+      }
+
+      const sql = `
+        UPDATE attendance
+        SET check_out = ?
+        WHERE user_id = ? AND date = ?
+      `;
+
+      db.query(sql, [time, userId, date], (err) => {
+        if (err) {
+          console.error("Check-out error:", err);
+          return res.status(500).json({ message: "Server error" });
+        }
+
+        res.json({ message: "Checked out successfully" });
+      });
+    },
+  );
 });
 
+//todays Status
 app.get("/api/employee/today-status", (req, res) => {
 
   const userId = req.session.user.id;
@@ -888,13 +940,12 @@ app.get("/api/employee/today-status", (req, res) => {
   `;
 
   db.query(sql, [userId, today], (err, results) => {
-
     if (err) return res.status(500).json({ message: "Server error" });
 
     if (results.length === 0) {
       return res.json({
         checkedIn: false,
-        checkedOut: false
+        checkedOut: false,
       });
     }
 
@@ -902,11 +953,10 @@ app.get("/api/employee/today-status", (req, res) => {
 
     res.json({
       checkedIn: !!record.check_in,
-      checkedOut: !!record.check_out
+      checkedOut: !!record.check_out,
     });
   });
 });
-
 
 // ================= LOGOUT =================
 app.post("/api/logout", (req, res) => {

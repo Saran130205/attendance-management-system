@@ -1,11 +1,9 @@
 /* ================= AUTH CHECK ================= */
 
 async function checkAuth() {
-
   try {
-
     const res = await fetch("/api/me", {
-      credentials: "same-origin"
+      credentials: "same-origin",
     });
 
     if (!res.ok) {
@@ -15,8 +13,7 @@ async function checkAuth() {
 
     const user = await res.json();
 
-    document.getElementById("welcomeText").innerText =
-      `Hello ${user.name}..,`;
+    document.getElementById("welcomeText").innerText = `Hello ${user.name}..,`;
 
     if (user.role !== "employee") {
       window.location.href = "/common/common.html";
@@ -25,25 +22,19 @@ async function checkAuth() {
 
     await loadAttendance();
     await updateCheckButtons();
-
   } catch (err) {
     console.error("Auth error:", err);
   }
-
 }
 
 checkAuth();
 
-
-
 /* ================= CHECK BUTTON STATUS ================= */
 
 async function updateCheckButtons() {
-
   try {
-
     const res = await fetch("/api/employee/disable-checkin", {
-      credentials: "same-origin"
+      credentials: "same-origin",
     });
 
     const data = await res.json();
@@ -54,96 +45,66 @@ async function updateCheckButtons() {
     if (!checkInBtn || !checkOutBtn) return;
 
     if (!data.checkedIn) {
-
       checkInBtn.disabled = false;
       checkOutBtn.disabled = true;
-
-    } 
-    else if (data.checkedIn && !data.checkedOut) {
-
+    } else if (data.checkedIn && !data.checkedOut) {
       checkInBtn.disabled = true;
       checkOutBtn.disabled = false;
-
-    } 
-    else {
-
+    } else {
       checkInBtn.disabled = true;
       checkOutBtn.disabled = true;
-
     }
-
   } catch (err) {
     console.error("Button update error:", err);
   }
-
 }
-
-
 
 /* ================= CHECK IN ================= */
 
 const checkInBtn = document.getElementById("checkInBtn");
 
 if (checkInBtn) {
-
   checkInBtn.addEventListener("click", async () => {
-
     checkInBtn.disabled = true;
 
     try {
-
       await fetch("/api/employee/checkin", {
-        method: "POST"
+        method: "POST",
       });
 
       await loadAttendance();
       await updateCheckButtons();
-
     } catch (err) {
       console.error("Check-in error:", err);
     }
-
   });
-
 }
-
-
 
 /* ================= CHECK OUT ================= */
 
 const checkOutBtn = document.getElementById("checkOutBtn");
 
 if (checkOutBtn) {
-
   checkOutBtn.addEventListener("click", async () => {
-
     checkOutBtn.disabled = true;
 
     try {
-
       await fetch("/api/employee/checkout", {
-        method: "POST"
+        method: "POST",
       });
 
       await loadAttendance();
       await updateCheckButtons();
-
     } catch (err) {
       console.error("Check-out error:", err);
     }
-
   });
-
 }
-
-
 
 /* ================= LOAD ATTENDANCE ================= */
 
 async function loadAttendance() {
-
   try {
-
     const res = await fetch("/api/employee/attendance");
     const data = await res.json();
 
@@ -155,12 +116,10 @@ async function loadAttendance() {
 
     const requiredMinutes = 8.5 * 60;
 
-    data.forEach(row => {
-
+    data.attendance.forEach((row) => {
       let workedDisplay = "-";
 
       if (row.worked_minutes !== null) {
-
         const hours = Math.floor(row.worked_minutes / 60);
         const mins = row.worked_minutes % 60;
 
@@ -171,7 +130,6 @@ async function loadAttendance() {
         } else {
           workedDisplay += " (Full)";
         }
-
       }
 
       tbody.innerHTML += `
@@ -183,34 +141,23 @@ async function loadAttendance() {
           <td>${workedDisplay}</td>
         </tr>
       `;
-
     });
-
   } catch (err) {
     console.error("Attendance load error:", err);
   }
-
 }
-
-
 
 /* ================= AUTO REFRESH ATTENDANCE ================= */
 
 setInterval(() => {
-
   loadAttendance();
   updateCheckButtons();
-
 }, 30000);
-
-
 
 /* ================= LOAD PROFILE ================= */
 
 async function loadProfile() {
-
   try {
-
     const res = await fetch("/api/employee/profile");
     const data = await res.json();
 
@@ -219,28 +166,21 @@ async function loadProfile() {
     document.getElementById("gender").value = data.gender || "";
 
     if (data.dob) {
-      const formattedDob = new Date(data.dob)
-        .toISOString()
-        .split("T")[0];
+      const formattedDob = new Date(data.dob).toISOString().split("T")[0];
 
       document.getElementById("dob").value = formattedDob;
-    } 
-    else {
+    } else {
       document.getElementById("dob").value = "";
     }
 
     document.getElementById("age").value = data.age || "";
     document.getElementById("contact").value = data.contact || "";
-
   } catch (err) {
     console.error("Profile load error:", err);
   }
-
 }
 
 loadProfile();
-
-
 
 /* ================= EDIT PROFILE ================= */
 
@@ -248,9 +188,7 @@ const editBtn = document.getElementById("editBtn");
 const saveBtn = document.getElementById("saveBtn");
 
 if (editBtn) {
-
   editBtn.addEventListener("click", () => {
-
     document.getElementById("gender").disabled = false;
     document.getElementById("dob").disabled = false;
     document.getElementById("age").disabled = false;
@@ -259,21 +197,15 @@ if (editBtn) {
 
     saveBtn.style.display = "inline-block";
     editBtn.style.display = "none";
-
   });
-
 }
-
-
 
 /* ================= SAVE PROFILE ================= */
 
 const profileForm = document.getElementById("profileForm");
 
 if (profileForm) {
-
   profileForm.addEventListener("submit", async function (e) {
-
     e.preventDefault();
 
     const gender = document.getElementById("gender").value;
@@ -282,56 +214,67 @@ if (profileForm) {
     const contact = document.getElementById("contact").value;
     const password = document.getElementById("password").value;
 
+    const saveBtn = document.getElementById("saveBtn");
+    const editBtn = document.getElementById("editBtn");
+
     try {
+      // Send only filled fields
+      const bodyData = {};
+
+      if (gender) bodyData.gender = gender;
+      if (dob) bodyData.dob = dob;
+      if (age) bodyData.age = age;
+      if (contact) bodyData.contact = contact;
+      if (password) bodyData.password = password;
 
       const res = await fetch("/api/employee/profile", {
-
         method: "PUT",
-
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-
-        body: JSON.stringify({
-          gender,
-          dob,
-          age,
-          contact,
-          password
-        })
-
+        body: JSON.stringify(bodyData),
       });
 
       const data = await res.json();
 
-      alert(data.message || "Profile updated successfully");
+      // alert(data.message);
 
+      // Logout if password changed
+      // Logout if password changed
+      if (data.logout) {
+        alert("Password changed. Please re-login.");
+
+        window.location.href = "/common/common.html";
+        return;
+      }
+
+      // Normal profile update message
+      alert(data.message || "Profile updated successfully");
+      // alert(data.message || "Profile updated successfully");
+      // Disable fields again
       document.getElementById("gender").disabled = true;
       document.getElementById("dob").disabled = true;
       document.getElementById("age").disabled = true;
       document.getElementById("contact").disabled = true;
       document.getElementById("password").disabled = true;
 
-      saveBtn.style.display = "none";
-      editBtn.style.display = "inline-block";
+      if (saveBtn) saveBtn.style.display = "none";
+      if (editBtn) editBtn.style.display = "inline-block";
 
+      // Clear password field
       document.getElementById("password").value = "";
 
       await loadProfile();
-
     } catch (err) {
       console.error("Profile update error:", err);
+      alert("Update failed");
     }
-
   });
-
 }
-
 
 /* ================= LEAVE SECTION ================= */
 
 document.addEventListener("DOMContentLoaded", () => {
-
   const leaveBtn = document.getElementById("leaveBtn");
   const leaveSection = document.getElementById("leaveSection");
   const cancelLeave = document.getElementById("cancelLeave");
@@ -342,31 +285,23 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (leaveBtn && leaveSection) {
-
     leaveBtn.addEventListener("click", async () => {
-
       leaveSection.classList.toggle("hidden");
 
       if (!leaveSection.classList.contains("hidden")) {
         await loadMyLeaves();
       }
-
     });
-
   }
 
   if (cancelLeave) {
-
     cancelLeave.addEventListener("click", () => {
       document.getElementById("leaveForm").classList.add("hidden");
     });
-
   }
 
   if (submitLeave) {
-
     submitLeave.addEventListener("click", async () => {
-
       const fromDate = document.getElementById("fromDate").value;
       const toDate = document.getElementById("toDate").value;
       const reason = document.getElementById("reason").value;
@@ -377,21 +312,18 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-
         const res = await fetch("/api/employee/request-leave", {
-
           method: "POST",
 
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
 
           body: JSON.stringify({
             from_date: fromDate,
             to_date: toDate,
-            reason
-          })
-
+            reason,
+          }),
         });
 
         const data = await res.json();
@@ -403,23 +335,16 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("reason").value = "";
 
         await loadMyLeaves();
-
       } catch (err) {
         alert("Error submitting leave");
       }
-
     });
-
   }
-
 });
-
-
 
 /* ================= LOAD MY LEAVES ================= */
 
 async function loadMyLeaves() {
-
   const res = await fetch("/api/employee/my-leaves");
   const data = await res.json();
 
@@ -430,16 +355,12 @@ async function loadMyLeaves() {
   tbody.innerHTML = "";
 
   if (data.length === 0) {
-
-    tbody.innerHTML =
-      "<tr><td colspan='4'>No leave history</td></tr>";
+    tbody.innerHTML = "<tr><td colspan='4'>No leave history</td></tr>";
 
     return;
-
   }
 
-  data.forEach(leave => {
-
+  data.forEach((leave) => {
     const fromDate = leave.from_date.split("T")[0];
     const toDate = leave.to_date.split("T")[0];
 
@@ -460,21 +381,15 @@ async function loadMyLeaves() {
     `;
 
     tbody.appendChild(row);
-
   });
-
 }
-
-
 
 /* ================= LOGOUT ================= */
 
 async function logout() {
-
   await fetch("/api/logout", {
-    method: "POST"
+    method: "POST",
   });
 
   window.location.href = "/common/common.html";
-
 }
