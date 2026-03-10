@@ -124,7 +124,7 @@ button {
 /* Sunday */
 .day-box.sunday {
   background: #f8d7da;
-  color: #721c24;
+  color: #e95c6a;
 }
 
 /* Saturday */
@@ -473,7 +473,7 @@ tbody tr:hover {
 }
 
 .leave-day{
-background:#e74c3c;
+background:#fa9668;
 color:white;
 }
 

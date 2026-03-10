@@ -20,7 +20,6 @@ app.use(
 
 // ================= LOGIN =================
 app.post("/api/login", (req, res) => {
-
   const { name, password, role } = req.body;
 
   if (!name || !password || !role) {
@@ -30,7 +29,6 @@ app.post("/api/login", (req, res) => {
   const sql = "SELECT * FROM users WHERE name=? AND password=? AND role=?";
 
   db.query(sql, [name, password, role.toLowerCase()], (err, results) => {
-
     if (err) {
       console.error("LOGIN DB ERROR:", err);
       return res.status(500).json({ message: "Database error" });
@@ -45,16 +43,14 @@ app.post("/api/login", (req, res) => {
     req.session.user = {
       id: user.id,
       role: user.role,
-      name: user.name
+      name: user.name,
     };
 
     res.json({
       role: user.role,
-      name: user.name
+      name: user.name,
     });
-
   });
-
 });
 // ================= SESSION CHECK =================
 app.get("/api/me", (req, res) => {
@@ -325,33 +321,28 @@ app.get("/api/admin/user-attendance-summary/:id", (req, res) => {
 //User-calendar
 
 app.get("/api/admin/user-calendar/:id", async (req, res) => {
-
   const userId = req.params.id;
 
   try {
+    const [attendance] = await db
+      .promise()
+      .query("SELECT date FROM attendance WHERE user_id = ?", [userId]);
 
-    const [attendance] = await db.promise().query(
-      "SELECT date FROM attendance WHERE user_id = ?",
-      [userId]
-    );
-
-    const [leaves] = await db.promise().query(
-      "SELECT from_date,to_date FROM leave_requests WHERE employee_id = ? AND status='Approved'",
-      [userId]
-    );
+    const [leaves] = await db
+      .promise()
+      .query(
+        "SELECT from_date,to_date FROM leave_requests WHERE employee_id = ? AND status='Approved'",
+        [userId],
+      );
 
     res.json({
       attendance,
-      leaves
+      leaves,
     });
-
   } catch (err) {
-
     console.error("Admin Calendar Error:", err);
     res.status(500).json({ error: "Calendar error" });
-
   }
-
 });
 
 //User-monthly-hours
@@ -586,7 +577,6 @@ app.get("/api/admin/export-attendance/:userId", async (req, res) => {
 // ================= EMPLOYEE ROUTES =================
 
 app.get("/api/employee/attendance", (req, res) => {
-
   if (!req.session.user || req.session.user.role !== "employee") {
     return res.status(403).json({ message: "Employee only" });
   }
@@ -610,7 +600,6 @@ app.get("/api/employee/attendance", (req, res) => {
   `;
 
   db.query(sql, [req.session.user.id], (err, results) => {
-
     if (err) {
       console.error("Attendance Error:", err);
       return res.status(500).json({ message: "Database error" });
@@ -618,15 +607,12 @@ app.get("/api/employee/attendance", (req, res) => {
 
     res.json({
       success: true,
-      attendance: results
+      attendance: results,
     });
-
   });
-
 });
 //Profile update
 app.put("/api/employee/profile", (req, res) => {
-
   if (!req.session.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -674,7 +660,6 @@ app.put("/api/employee/profile", (req, res) => {
   values.push(req.session.user.id);
 
   db.query(sql, values, (err, result) => {
-
     if (err) {
       console.error("Profile update error:", err);
       return res.status(500).json({ message: "Database error" });
@@ -688,14 +673,11 @@ app.put("/api/employee/profile", (req, res) => {
     } else {
       res.json({ message: "Profile updated successfully" });
     }
-
   });
-
 });
 
 //get Profile
 app.get("/api/employee/profile", (req, res) => {
-
   if (!req.session.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -707,7 +689,6 @@ app.get("/api/employee/profile", (req, res) => {
   `;
 
   db.query(sql, [req.session.user.id], (err, result) => {
-
     if (err) {
       console.error("PROFILE FETCH ERROR:", err);
       return res.status(500).json({ message: "Database error" });
@@ -719,7 +700,6 @@ app.get("/api/employee/profile", (req, res) => {
 
     res.json(result[0]);
   });
-
 });
 
 //CheckIn
@@ -729,7 +709,8 @@ app.post("/api/employee/checkin", (req, res) => {
 
   const userId = req.session.user.id;
 
-  const today = new Date().toISOString().split("T")[0];
+  const now = new Date();
+  const today = now.toLocaleDateString("en-CA");
   const time = new Date().toTimeString().split(" ")[0];
 
   const sql = `
@@ -749,7 +730,8 @@ app.post("/api/employee/checkout", (req, res) => {
     return res.status(401).json({ message: "Unauthorized" });
 
   const userId = req.session.user.id;
-  const today = new Date().toISOString().split("T")[0];
+  const now = new Date();
+  const today = now.toLocaleDateString("en-CA");
   const time = new Date().toTimeString().split(" ")[0];
 
   const sql = `
@@ -815,8 +797,8 @@ app.get("/api/employee/my-leaves", (req, res) => {
 //Auto disable checkin
 app.get("/api/employee/disable-checkin", (req, res) => {
   const userId = req.session.user.id;
-  const today = new Date().toISOString().split("T")[0];
-
+const now = new Date();
+const today = now.toLocaleDateString("en-CA");
   const sql = `
     SELECT check_in, check_out
     FROM attendance
@@ -937,8 +919,8 @@ app.get("/api/employee/today-status", (req, res) => {
     return res.status(403).json({ message: "Employee only" });
   }
   const userId = req.session.user.id;
-  const today = new Date().toISOString().split("T")[0];
-
+const now = new Date();
+const today = now.toLocaleDateString("en-CA");
   const sql = `
     SELECT check_in, check_out
     FROM attendance
@@ -965,8 +947,7 @@ app.get("/api/employee/today-status", (req, res) => {
 });
 
 // Leave Count
-app.get("/api/employee/leave-count", (req,res)=>{
-
+app.get("/api/employee/leave-count", (req, res) => {
   if (!req.session.user || req.session.user.role !== "employee") {
     return res.status(403).json({ message: "Employee only" });
   }
@@ -977,44 +958,36 @@ app.get("/api/employee/leave-count", (req,res)=>{
     WHERE employee_id=? AND status='Approved'
   `;
 
-  db.query(sql,[req.session.user.id],(err,result)=>{
-
-    if(err) return res.status(500).json(err);
+  db.query(sql, [req.session.user.id], (err, result) => {
+    if (err) return res.status(500).json(err);
 
     res.json(result[0]);
-
   });
-
 });
 //Load Calender
 app.get("/api/employee/leave-calendar", async (req, res) => {
-
   const userId = req.session.user.id;
 
   try {
+    const [attendance] = await db
+      .promise()
+      .query("SELECT date FROM attendance WHERE user_id = ?", [userId]);
 
-    const [attendance] = await db.promise().query(
-      "SELECT date FROM attendance WHERE user_id = ?",
-      [userId]
-    );
-
-    const [leaves] = await db.promise().query(
-      "SELECT from_date, to_date FROM leave_requests WHERE employee_id = ? AND status='Approved'",
-      [userId]
-    );
+    const [leaves] = await db
+      .promise()
+      .query(
+        "SELECT from_date, to_date FROM leave_requests WHERE employee_id = ? AND status='Approved'",
+        [userId],
+      );
 
     res.json({
       attendance,
-      leaves
+      leaves,
     });
-
   } catch (err) {
-
     console.error("Calendar error:", err);
     res.status(500).json({ message: "Calendar error" });
-
   }
-
 });
 
 // ================= LOGOUT =================
