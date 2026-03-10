@@ -20,25 +20,42 @@ app.use(
 
 // ================= LOGIN =================
 app.post("/api/login", (req, res) => {
-  const { name, password } = req.body;
 
-  db.query("SELECT * FROM users WHERE name = ?", [name], (err, results) => {
-    if (err) return res.status(500).json({ message: "Database error" });
+  const { name, password, role } = req.body;
 
-    if (results.length === 0)
-      return res.status(404).json({ message: "User not found" });
+  if (!name || !password || !role) {
+    return res.status(400).json({ message: "Missing login fields" });
+  }
+
+  const sql = "SELECT * FROM users WHERE name=? AND password=? AND role=?";
+
+  db.query(sql, [name, password, role.toLowerCase()], (err, results) => {
+
+    if (err) {
+      console.error("LOGIN DB ERROR:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
 
     const user = results[0];
 
-    if (user.password !== password)
-      return res.status(401).json({ message: "Wrong password" });
+    req.session.user = {
+      id: user.id,
+      role: user.role,
+      name: user.name
+    };
 
-    req.session.user = user;
+    res.json({
+      role: user.role,
+      name: user.name
+    });
 
-    res.json({ role: user.role });
   });
-});
 
+});
 // ================= SESSION CHECK =================
 app.get("/api/me", (req, res) => {
   if (!req.session.user)
@@ -307,47 +324,34 @@ app.get("/api/admin/user-attendance-summary/:id", (req, res) => {
 
 //User-calendar
 
-app.get("/api/admin/user-calendar/:id", (req, res) => {
+app.get("/api/admin/user-calendar/:id", async (req, res) => {
+
   const userId = req.params.id;
 
-  const month = new Date().getMonth() + 1;
-  const year = new Date().getFullYear();
+  try {
 
-  const attendanceSql = `
-    SELECT date FROM attendance
-    WHERE user_id = ?
-    AND MONTH(date) = ?
-    AND YEAR(date) = ?
-  `;
+    const [attendance] = await db.promise().query(
+      "SELECT date FROM attendance WHERE user_id = ?",
+      [userId]
+    );
 
-  const leaveSql = `
-    SELECT from_date, to_date FROM leave_requests
-    WHERE employee_id = ?   
-    AND status = 'Approved'
-    AND (
-      MONTH(from_date) = ?
-      OR MONTH(to_date) = ?
-    )
-  `;
+    const [leaves] = await db.promise().query(
+      "SELECT from_date,to_date FROM leave_requests WHERE employee_id = ? AND status='Approved'",
+      [userId]
+    );
 
-  db.query(attendanceSql, [userId, month, year], (err, attendance) => {
-    if (err) {
-      console.log("Attendance SQL Error:", err);
-      return res.status(500).json({ attendance: [], leaves: [] });
-    }
-
-    db.query(leaveSql, [userId, month, month], (err2, leaves) => {
-      if (err2) {
-        console.log("Leave SQL Error:", err2);
-        return res.status(500).json({ attendance: [], leaves: [] });
-      }
-
-      res.json({
-        attendance: attendance || [],
-        leaves: leaves || [],
-      });
+    res.json({
+      attendance,
+      leaves
     });
-  });
+
+  } catch (err) {
+
+    console.error("Admin Calendar Error:", err);
+    res.status(500).json({ error: "Calendar error" });
+
+  }
+
 });
 
 //User-monthly-hours
@@ -983,29 +987,33 @@ app.get("/api/employee/leave-count", (req,res)=>{
 
 });
 //Load Calender
-app.get("/api/employee/leave-calendar", (req, res) => {
+app.get("/api/employee/leave-calendar", async (req, res) => {
 
-  if (!req.session.user) {
-    return res.status(401).json({ message: "Unauthorized" });
+  const userId = req.session.user.id;
+
+  try {
+
+    const [attendance] = await db.promise().query(
+      "SELECT date FROM attendance WHERE user_id = ?",
+      [userId]
+    );
+
+    const [leaves] = await db.promise().query(
+      "SELECT from_date, to_date FROM leave_requests WHERE employee_id = ? AND status='Approved'",
+      [userId]
+    );
+
+    res.json({
+      attendance,
+      leaves
+    });
+
+  } catch (err) {
+
+    console.error("Calendar error:", err);
+    res.status(500).json({ message: "Calendar error" });
+
   }
-
-  const sql = `
-    SELECT from_date, to_date
-    FROM leave_requests
-    WHERE employee_id = ?
-    AND status = 'Approved'
-  `;
-
-  db.query(sql, [req.session.user.id], (err, results) => {
-
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ message: "Database error" });
-    }
-
-    res.json(results);
-
-  });
 
 });
 

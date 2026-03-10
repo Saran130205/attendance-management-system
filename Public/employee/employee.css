@@ -20,11 +20,10 @@ h1 {
 }
 
 /* ===== TOP BAR ===== */
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+.top-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
 }
 
 #welcomeText {
@@ -182,12 +181,12 @@ button:disabled {
 }
 
 .leave-balance{
+  margin-left:auto;
+  margin-right: 4px;
   background:#fff;
   padding:6px 14px;
   border-radius:8px;
   font-weight:600;
-  margin-right:15px;
-  display:inline-block;
 }
 
 .leave-balance span{
@@ -197,7 +196,7 @@ button:disabled {
 .leave-day{
   background-color:#ff4d4d;
   color:white;
-  border-radius:6px;
+  /* border-radius:6px; */
 }
 
 .calendar-overlay{
@@ -245,4 +244,83 @@ button:disabled {
 .leave-day{
   background:#ff4d4d;
   color:white;
+}
+
+/* ===== YEAR CALENDAR ===== */
+
+#employeeCalendar{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px;
+}
+
+.month-box{
+  background:white;
+  padding:15px;
+  border-radius:10px;
+}
+
+.month-box h3{
+  text-align:center;
+  margin-bottom:10px;
+}
+
+.calendar-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px;
+  margin-top:10px;
+}
+
+.day-box{
+  padding:10px;
+  text-align:center;
+  border-radius:6px;
+  background:#f1f1f1;
+}
+
+/* Sunday */
+.sunday{
+  background:#ff4d4d;
+  color:white;
+}
+
+/* Saturday */
+.saturday{
+  background:#ffc0c0;
+}
+
+/* Leave */
+.leave-day{
+  background:#b30000;
+  color:white;
+}
+
+/* Today */
+.today{
+  background:#2ecc71;
+  color:white;
+  font-weight:bold;
+}
+
+/* Present */
+.present{
+  background:#f1c40f;
+}
+
+/* Leave */
+.leave-day{
+  background:#e74c3c;
+  color:white;
+}
+
+/* Absent */
+.absent{
+  background:#ecf0f1;
+  border:1px solid #ccc;
+}
+
+.present{
+background:#4CAF50;
+color:white;
 }

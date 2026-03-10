@@ -206,7 +206,7 @@ document.addEventListener("DOMContentLoaded", function () {
     tbody.innerHTML = "";
 
     records.forEach((record) => {
-      const dateOnly = record.date.split("T")[0];
+      const dateOnly = new Date(record.date).toLocaleDateString("en-CA");
       let totalDuration = "-";
 
       if (record.check_in && record.check_out) {
@@ -544,7 +544,6 @@ document.addEventListener("DOMContentLoaded", function () {
     loadHRAnalytics();
   }, 5000);
 
-
   // ================= LOGOUT =================
 
   window.logout = async function () {
@@ -627,6 +626,7 @@ window.viewStatus = function (userId) {
 // ================= USER CALENDAR =================
 
 window.openUserCalendar = async function (userId, userName) {
+
   const overlay = document.getElementById("userCalendarOverlay");
   const calendarDiv = document.getElementById("userCalendar");
   const nameTitle = document.getElementById("calendarUserName");
@@ -637,34 +637,88 @@ window.openUserCalendar = async function (userId, userName) {
   const res = await fetch(`/api/admin/user-calendar/${userId}`);
   const data = await res.json();
 
-  const presentDates = data.attendance.map(
-    (a) => new Date(a.date).toISOString().split("T")[0],
+  const attendance = data.attendance || [];
+  const leaves = data.leaves || [];
+
+  const presentDates = attendance.map(a =>
+    new Date(a.date).toISOString().split("T")[0]
   );
 
-  const year = new Date().getFullYear();
-  const month = new Date().getMonth();
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+
+  const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
+  const grid = document.createElement("div");
+  grid.classList.add("calendar-grid");
+
+  // Empty boxes before month start
+  for (let i = 0; i < firstDay; i++) {
+    grid.appendChild(document.createElement("div"));
+  }
+
   for (let day = 1; day <= daysInMonth; day++) {
+
     const dateObj = new Date(year, month, day);
     const dateStr = dateObj.toISOString().split("T")[0];
+
+    const dayOfWeek = dateObj.getDay();
+    const weekOfMonth = Math.ceil(day / 7);
 
     const box = document.createElement("div");
     box.classList.add("day-box");
     box.innerText = day;
 
+    /* ===== Sunday ===== */
+    if (dayOfWeek === 0) {
+      box.classList.add("sunday");
+    }
+
+    /* ===== Saturday except 2nd Saturday ===== */
+    if (dayOfWeek === 6 && weekOfMonth !== 2) {
+      box.classList.add("saturday");
+    }
+
+    /* ===== Present ===== */
     if (presentDates.includes(dateStr)) {
       box.classList.add("present");
-    } else {
+    }
+
+    /* ===== Absent ===== */
+    if (
+      dayOfWeek !== 0 &&                     // not Sunday
+      !(dayOfWeek === 6 && weekOfMonth !== 2) && // not Saturday
+      !presentDates.includes(dateStr)
+    ) {
       box.classList.add("absent");
     }
 
-    calendarDiv.appendChild(box);
+    /* ===== Leave (Highest Priority) ===== */
+    leaves.forEach(l => {
+
+      const from = l.from_date.split("T")[0];
+      const to = l.to_date.split("T")[0];
+
+      if (dateStr >= from && dateStr <= to) {
+
+        box.classList.remove("present");
+        box.classList.remove("absent");
+        box.classList.add("leave-day");
+
+      }
+
+    });
+
+    grid.appendChild(box);
   }
 
-  overlay.classList.remove("hidden");
-};
+  calendarDiv.appendChild(grid);
 
+  overlay.classList.remove("hidden");
+
+};
 // ================= MONTHLY HOURS =================
 
 window.viewMonthlyHours = async function (userId, userName) {

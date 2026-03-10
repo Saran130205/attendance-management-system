@@ -3,15 +3,13 @@ const mysql = require("mysql2");
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "SARAN1302",
-  database: "attendance_system",
-  // timezone: "+05:30"
-
+  password: "SARAN1302",   // keep empty if using XAMPP
+  database: "attendance_system"
 });
 
 db.connect((err) => {
   if (err) {
-    console.log("Database connection failed:", err);
+    console.error("Database connection failed:", err);
   } else {
     console.log("Database connected successfully");
   }

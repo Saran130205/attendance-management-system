@@ -30,7 +30,6 @@ async function checkAuth() {
 checkAuth();
 
 async function loadEmployeeCalendar() {
-
   const res = await fetch("/api/employee/leave-calendar");
   const data = await res.json();
 
@@ -46,7 +45,6 @@ async function loadEmployeeCalendar() {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   for (let day = 1; day <= daysInMonth; day++) {
-
     const dateObj = new Date(year, month, day);
     const dateStr = dateObj.toISOString().split("T")[0];
 
@@ -56,21 +54,25 @@ async function loadEmployeeCalendar() {
 
     box.innerText = day;
 
-    data.forEach(leave => {
+    attendance.forEach((a) => {
+      const presentDate = new Date(a.date).toISOString().split("T")[0];
 
+      if (presentDate === dateStr) {
+        box.classList.add("present");
+      }
+    });
+
+    data.forEach((leave) => {
       const from = leave.from_date.split("T")[0];
       const to = leave.to_date.split("T")[0];
 
       if (dateStr >= from && dateStr <= to) {
         box.classList.add("leave-day");
       }
-
     });
 
     calendar.appendChild(box);
-
   }
-
 }
 
 /* ================= CHECK BUTTON STATUS ================= */
@@ -191,24 +193,20 @@ async function loadAttendance() {
   }
 }
 
-//================== loadLeaveBalance ================ 
+//================== loadLeaveBalance ================
 async function loadLeaveBalance() {
-
   try {
-
     const res = await fetch("/api/employee/leave-balance");
     const data = await res.json();
 
-    const el = document.getElementById("leaveBalance");
+    const el = document.getElementById("leaveUsed");
 
     if (el) {
-      el.innerText = `Leave: ${data.used} / ${data.total}`;
+      el.innerText = data.used;
     }
-
   } catch (err) {
     console.error("Leave balance error:", err);
   }
-
 }
 
 // // ================ Leave Count =============
@@ -345,6 +343,142 @@ if (profileForm) {
       alert("Update failed");
     }
   });
+}
+
+/* ================= EMPLOYEE CALENDAR ================= */
+
+function openEmployeeCalendar() {
+  const overlay = document.getElementById("calendarOverlay");
+
+  if (overlay) {
+    overlay.classList.remove("hidden");
+  }
+
+  generateEmployeeCalendar();
+}
+
+function closeEmployeeCalendar() {
+  const overlay = document.getElementById("calendarOverlay");
+
+  if (overlay) {
+    overlay.classList.add("hidden");
+  }
+}
+
+/* ================= YEAR CALENDAR ================= */
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+
+async function generateEmployeeCalendar() {
+  const res = await fetch("/api/employee/leave-calendar");
+  const data = await res.json();
+  const attendance = data.attendance;
+  const leaves = data.leaves;
+
+  const calendar = document.getElementById("employeeCalendar");
+  const title = document.getElementById("calendarMonthTitle");
+
+  if (!calendar) return;
+
+  calendar.innerHTML = "";
+
+  const monthName = new Date(currentYear, currentMonth).toLocaleString(
+    "default",
+    { month: "long" },
+  );
+
+  title.innerText = `${monthName} ${currentYear}`;
+
+  const grid = document.createElement("div");
+  grid.classList.add("calendar-grid");
+
+  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+  for (let i = 0; i < firstDay; i++) {
+    grid.appendChild(document.createElement("div"));
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateObj = new Date(currentYear, currentMonth, day);
+    const dateStr = dateObj.toISOString().split("T")[0];
+
+    const box = document.createElement("div");
+    box.classList.add("day-box");
+    box.innerText = day;
+
+    attendance.forEach((a) => {
+
+  const presentDate = new Date(a.date).toISOString().split("T")[0];
+
+  if (presentDate === dateStr) {
+
+    box.classList.add("present");
+
+  }
+
+});
+
+    const dayOfWeek = dateObj.getDay();
+    const weekOfMonth = Math.ceil(day / 7);
+
+    // Sunday
+    if (dayOfWeek === 0) {
+      box.classList.add("sunday");
+    }
+
+    // Saturday except 2nd Saturday
+    if (dayOfWeek === 6 && weekOfMonth !== 2) {
+      box.classList.add("saturday");
+    }
+
+    // PRESENT DAYS
+attendance.forEach((a) => {
+
+  const presentDate = new Date(a.date).toISOString().split("T")[0];
+
+  if (presentDate === dateStr) {
+    box.classList.add("present");
+  }
+
+});
+
+    // Leave days
+    leaves.forEach((l) => {
+      const from = l.from_date.split("T")[0];
+      const to = l.to_date.split("T")[0];
+
+      if (dateStr >= from && dateStr <= to) {
+        box.classList.add("leave-day");
+      }
+    });
+
+    grid.appendChild(box);
+  }
+
+  calendar.appendChild(grid);
+}
+
+function nextMonth() {
+  currentMonth++;
+
+  if (currentMonth > 11) {
+    currentMonth = 0;
+    currentYear++;
+  }
+
+  generateEmployeeCalendar();
+}
+
+function prevMonth() {
+  currentMonth--;
+
+  if (currentMonth < 0) {
+    currentMonth = 11;
+    currentYear--;
+  }
+
+  generateEmployeeCalendar();
 }
 
 /* ================= LEAVE SECTION ================= */
